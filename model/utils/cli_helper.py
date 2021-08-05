@@ -1,3 +1,11 @@
+'''
+Author: your name
+Date: 2021-08-03 16:30:37
+LastEditTime: 2021-08-04 14:05:53
+LastEditors: Please set LastEditors
+Description: In User Settings Edit
+FilePath: /lanenet-lane-detection-pytorch/model/utils/cli_helper.py
+'''
 import argparse
 
 def parse_args():
@@ -16,4 +24,5 @@ def parse_args():
     parser.add_argument("--image", default="./output", help="output image folder")
     parser.add_argument("--net", help="backbone network")
     parser.add_argument("--json", help="post processing json")
+    parser.add_argument("--checkpoint", required=False, help="checkpoint path")
     return parser.parse_args()

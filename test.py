@@ -1,3 +1,11 @@
+'''
+Author: your name
+Date: 2021-08-03 16:30:37
+LastEditTime: 2021-08-05 09:38:12
+LastEditors: Please set LastEditors
+Description: In User Settings Edit
+FilePath: /undefined/Users/wk/Desktop/Mac_Workspaces/lanenet-lane-detection-pytorch/test.py
+'''
 import time
 import os
 import sys
@@ -16,10 +24,12 @@ import cv2
 
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+
 def load_test_data(img_path, transform):
     img = Image.open(img_path)
     img = transform(img)
     return img
+
 
 def test():
     if os.path.exists('test_output') == False:
@@ -30,14 +40,16 @@ def test():
     resize_width = args.width
 
     data_transform = transforms.Compose([
-        transforms.Resize((resize_height,  resize_width)),
+        transforms.Resize((resize_height, resize_width)),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
 
     model_path = args.model
     model = LaneNet(arch=args.model_type)
-    state_dict = torch.load(model_path)
+    state_dict = torch.load(model_path) #默认保存的模型是gpu
+    #  state_dict = torch.load(model_path,
+                            map_location=torch.device('cpu'))  # cpu推理
     model.load_state_dict(state_dict)
     model.eval()
     model.to(DEVICE)
@@ -50,11 +62,14 @@ def test():
     input = input.resize((resize_width, resize_height))
     input = np.array(input)
 
-    instance_pred = torch.squeeze(outputs['instance_seg_logits'].detach().to('cpu')).numpy() * 255
-    binary_pred = torch.squeeze(outputs['binary_seg_pred']).to('cpu').numpy() * 255
+    instance_pred = torch.squeeze(
+        outputs['instance_seg_logits'].detach().to('cpu')).numpy() * 255
+    binary_pred = torch.squeeze(
+        outputs['binary_seg_pred']).to('cpu').numpy() * 255
 
     cv2.imwrite(os.path.join('test_output', 'input.jpg'), input)
-    cv2.imwrite(os.path.join('test_output', 'instance_output.jpg'), instance_pred.transpose((1, 2, 0)))
+    cv2.imwrite(os.path.join('test_output', 'instance_output.jpg'),
+                instance_pred.transpose((1, 2, 0)))
     cv2.imwrite(os.path.join('test_output', 'binary_output.jpg'), binary_pred)
 
 
