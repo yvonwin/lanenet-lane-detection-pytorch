@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-08-03 16:30:37
-LastEditTime: 2021-08-05 09:38:12
+LastEditTime: 2021-08-05 10:58:41
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: /undefined/Users/wk/Desktop/Mac_Workspaces/lanenet-lane-detection-pytorch/test.py
@@ -47,9 +47,8 @@ def test():
 
     model_path = args.model
     model = LaneNet(arch=args.model_type)
-    state_dict = torch.load(model_path) #默认保存的模型是gpu
-    #  state_dict = torch.load(model_path,
-                            map_location=torch.device('cpu'))  # cpu推理
+    state_dict = torch.load(model_path) #  默认保存的模型是gpu
+    #  state_dict = torch.load(model_path, map_location=torch.device('cpu'))  # cpu推理
     model.load_state_dict(state_dict)
     model.eval()
     model.to(DEVICE)

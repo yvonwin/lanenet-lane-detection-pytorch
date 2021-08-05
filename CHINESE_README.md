@@ -1,3 +1,11 @@
+<!--
+ * @Author: your name
+ * @Date: 2021-08-03 16:30:37
+ * @LastEditTime: 2021-08-05 10:14:44
+ * @LastEditors: Please set LastEditors
+ * @Description: In User Settings Edit
+ * @FilePath: /lanenet-lane-detection-pytorch/CHINESE_README.md
+-->
 # Lanenet-Lane-Detection (基于pytorch的版本)
 
 [English Version](https://github.com/IrohXu/lanenet-lane-detection-pytorch/blob/main/README.md)    
@@ -73,3 +81,12 @@ python test.py --img ./data/tusimple_test_image/0.jpg
 
 
 待更新
+
+### 训练自己的数据
+```
+python train.py --dataset ~/WorkSpaces/data/dataset_tmp  --model_type DeepLabv3+ --epochs 200
+```
+此项目待完善部分
+- post process
+- 参数优化 参数加载checkpoint 参数加载模型
+- 部署
