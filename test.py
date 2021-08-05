@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-08-03 16:30:37
-LastEditTime: 2021-08-05 10:58:41
+LastEditTime: 2021-08-05 16:14:37
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: /undefined/Users/wk/Desktop/Mac_Workspaces/lanenet-lane-detection-pytorch/test.py
@@ -17,6 +17,7 @@ from torch.utils.data import DataLoader
 from torch.autograd import Variable
 from torchvision import transforms
 from model.utils.cli_helper_test import parse_args
+from model.utils.postprocess import embedding_post_process
 import numpy as np
 from PIL import Image
 import pandas as pd
@@ -47,8 +48,11 @@ def test():
 
     model_path = args.model
     model = LaneNet(arch=args.model_type)
-    state_dict = torch.load(model_path) #  默认保存的模型是gpu
-    #  state_dict = torch.load(model_path, map_location=torch.device('cpu'))  # cpu推理
+    if DEVICE == 'cuda:0':
+        state_dict = torch.load(model_path)  #  默认保存的模型是gpu
+    else:
+        state_dict = torch.load(model_path,
+                                map_location=torch.device('cpu'))  # cpu推理
     model.load_state_dict(state_dict)
     model.eval()
     model.to(DEVICE)
@@ -65,6 +69,29 @@ def test():
         outputs['instance_seg_logits'].detach().to('cpu')).numpy() * 255
     binary_pred = torch.squeeze(
         outputs['binary_seg_pred']).to('cpu').numpy() * 255
+
+    # postprocess
+    seg_img = np.zeros_like(input)
+    embedding = instance_pred.transpose((1, 2, 0))
+    bandwidth = 1.5
+    # use meanshift
+    lane_seg_img = embedding_post_process(embedding, binary_pred, bandwidth, 2)
+    #  print(lane_seg_img)
+    #  print(lane_seg_img.shape)
+    color = np.array([[255, 255, 0], [0, 255, 0], [0, 0, 255], [0, 255, 255]],
+                     dtype='uint8')
+
+    for i, lane_idx in enumerate(np.unique(lane_seg_img)):
+        if lane_idx == 0:
+            continue
+        seg_img[lane_seg_img == lane_idx] = color[i - 1]
+    img = cv2.addWeighted(src1=seg_img,
+                          alpha=0.8,
+                          src2=input,
+                          beta=1,
+                          gamma=0.)
+    #  print(input.shape)
+    cv2.imwrite('./test_output/demo_result.png', img)
 
     cv2.imwrite(os.path.join('test_output', 'input.jpg'), input)
     cv2.imwrite(os.path.join('test_output', 'instance_output.jpg'),

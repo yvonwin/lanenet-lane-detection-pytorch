@@ -5,23 +5,26 @@ from torch.optim import lr_scheduler
 import numpy as np
 import time
 import copy
-import  os
+import os
 from model.lanenet.loss import DiscriminativeLoss, FocalLoss
 
 
-def compute_loss(net_output, binary_label, instance_label, loss_type='FocalLoss'):
-    k_binary = 10    #1.7
+def compute_loss(net_output,
+                 binary_label,
+                 instance_label,
+                 loss_type='FocalLoss'):
+    k_binary = 10  #1.7
     k_instance = 0.3
     k_dist = 1.0
 
-    if(loss_type == 'FocalLoss'):
+    if (loss_type == 'FocalLoss'):
         loss_fn = FocalLoss(gamma=2, alpha=[0.25, 0.75])
-    elif(loss_type == 'CrossEntropyLoss'):
+    elif (loss_type == 'CrossEntropyLoss'):
         loss_fn = nn.CrossEntropyLoss()
     else:
         # print("Wrong loss type, will use the default CrossEntropyLoss")
         loss_fn = nn.CrossEntropyLoss()
-    
+
     binary_seg_logits = net_output["binary_seg_logits"]
     binary_loss = loss_fn(binary_seg_logits, binary_label)
 
@@ -38,9 +41,16 @@ def compute_loss(net_output, binary_label, instance_label, loss_type='FocalLoss'
     return total_loss, binary_loss, instance_loss, out
 
 
-def train_model(model, optimizer, scheduler, dataloaders, dataset_sizes, device, loss_type = 'FocalLoss', num_epochs=25):
+def train_model(model,
+                optimizer,
+                scheduler,
+                dataloaders,
+                dataset_sizes,
+                device,
+                loss_type='FocalLoss',
+                num_epochs=25):
     since = time.time()
-    training_log = {'epoch':[], 'training_loss':[], 'val_loss':[]}
+    training_log = {'epoch': [], 'training_loss': [], 'val_loss': []}
     best_loss = float("inf")
 
     # 是否加载断点。TODO 后续需要写进默认参数里 测试稳定性
@@ -51,10 +61,10 @@ def train_model(model, optimizer, scheduler, dataloaders, dataset_sizes, device,
         checkpoint = torch.load(path_checkpoint)  # 加载断点
 
         model.load_state_dict(checkpoint['net'])  # 加载可学习参数
-        optimizer.load_state_dict(checkpoint['optimizer']) # 加载优化器参数
-        start_epoch = checkpoint['epoch']   # 设置开始的epoch 通过它来保证训练时epoch不会变化
+        optimizer.load_state_dict(checkpoint['optimizer'])  # 加载优化器参数
+        start_epoch = checkpoint['epoch']  # 设置开始的epoch 通过它来保证训练时epoch不会变化
         print('sucess load checkpoint')
-    best_model_wts = copy.deepcopy(model.state_dict())  
+    best_model_wts = copy.deepcopy(model.state_dict())
 
     for epoch in range(start_epoch, num_epochs):
         training_log['epoch'].append(epoch)
@@ -66,7 +76,7 @@ def train_model(model, optimizer, scheduler, dataloaders, dataset_sizes, device,
             if phase == 'train':
                 model.train()  # Set model to training mode
             else:
-                model.eval()   # Set model to evaluate mode
+                model.eval()  # Set model to evaluate mode
 
             running_loss = 0.0
             running_loss_b = 0.0
@@ -104,7 +114,9 @@ def train_model(model, optimizer, scheduler, dataloaders, dataset_sizes, device,
             epoch_loss = running_loss / dataset_sizes[phase]
             binary_loss = running_loss_b / dataset_sizes[phase]
             instance_loss = running_loss_i / dataset_sizes[phase]
-            print('{} Total Loss: {:.4f} Binary Loss: {:.4f} Instance Loss: {:.4f}'.format(phase, epoch_loss, binary_loss, instance_loss))
+            print(
+                '{} Total Loss: {:.4f} Binary Loss: {:.4f} Instance Loss: {:.4f}'
+                .format(phase, epoch_loss, binary_loss, instance_loss))
 
             # deep copy the model
             if phase == 'train':
@@ -116,16 +128,17 @@ def train_model(model, optimizer, scheduler, dataloaders, dataset_sizes, device,
                     best_model_wts = copy.deepcopy(model.state_dict())
         print()
         #  保存checkpoint 每隔几个epoch一次
-        save_interval = 1
-        if (epoch+1) % save_interval == 0:
+        save_interval = 5
+        if (epoch + 1) % save_interval == 0:
             checkpoint = {
                 "net": model.state_dict(),
                 "optimizer": optimizer.state_dict(),
-                "epoch": epoch+1,
+                "epoch": epoch + 1,
             }
             if not os.path.exists("./log/checkpoints"):
                 os.makedirs('./log/checkpoints')
-            torch.save(checkpoint, './log/checkpoints/ckpt_best_%s.pth' % (str(epoch)))
+            torch.save(checkpoint,
+                       './log/checkpoints/ckpt_best_%s.pth' % (str(epoch)))
 
     time_elapsed = time.time() - since
     print('Training complete in {:.0f}m {:.0f}s'.format(
@@ -138,7 +151,8 @@ def train_model(model, optimizer, scheduler, dataloaders, dataset_sizes, device,
     model.load_state_dict(best_model_wts)
     return model, training_log
 
-def  trans_to_cuda(variable):
+
+def trans_to_cuda(variable):
     if torch.cuda.is_available():
         return variable.cuda()
     else:

@@ -11,8 +11,9 @@ __pycache__/
 *.vscode
 
 # log
-log/
-test_output/
+log/*
+test_output
+data/test_img
 
 # Distribution / packaging
 .Python
