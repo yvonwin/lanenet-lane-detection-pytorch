@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-08-03 16:30:37
-LastEditTime: 2021-08-06 17:40:50
+LastEditTime: 2021-08-09 11:11:19
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: /lanenet-lane-detection-pytorch/model/utils/cli_helper.py
@@ -19,7 +19,7 @@ def parse_args():
     parser.add_argument("--height", required=False, type=int, help="Resize height", default=256)
     parser.add_argument("--bs", required=False, type=int, help="Batch size", default=4)
     parser.add_argument("--val", required=False, type=bool, help="Use validation", default=False)
-    parser.add_argument("--lr", required=False, type=float, help="Learning rate", default=0.0001)
+    parser.add_argument("--lr", required=False, type=float, help="Learning rate", default=0.0001) # deeplabv3+原始是0.0007
     parser.add_argument("--pretrained", required=False, default=None, help="pretrained model path")
     parser.add_argument("--image", default="./output", help="output image folder")
     parser.add_argument("--net", help="backbone network")

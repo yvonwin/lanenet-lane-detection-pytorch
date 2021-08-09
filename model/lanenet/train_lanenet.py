@@ -43,23 +43,22 @@ def compute_loss(net_output,
 
 def train_model(model,
                 optimizer,
-                scheduler,
+                scheduler, # unuse now
                 dataloaders,
                 dataset_sizes,
                 device,
                 loss_type='FocalLoss',
-                num_epochs=25):
+                num_epochs=25,
+                checkpoint=False):
+    # scheduler.step()                 # 学习率调整
+    # now_lr = scheduler.get_lr()      # 更新学习率
     since = time.time()
     training_log = {'epoch': [], 'training_loss': [], 'val_loss': []}
     best_loss = float("inf")
-
-    # 是否加载断点。TODO 后续需要写进默认参数里 测试稳定性
-    RESUME = 1
     start_epoch = 0
-    if RESUME:
-        path_checkpoint = "./log/checkpoints/ckpt_best_0.pth"  # 应该使用参数传递
-        checkpoint = torch.load(path_checkpoint)  # 加载断点
-
+    #  加载断点
+    if checkpoint:
+        checkpoint = torch.load(checkpoint)  # 加载断点
         model.load_state_dict(checkpoint['net'])  # 加载可学习参数
         optimizer.load_state_dict(checkpoint['optimizer'])  # 加载优化器参数
         start_epoch = checkpoint['epoch']  # 设置开始的epoch 通过它来保证训练时epoch不会变化

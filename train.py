@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-08-03 16:30:37
-LastEditTime: 2021-08-05 16:01:19
+LastEditTime: 2021-08-09 13:45:18
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: /lanenet-lane-detection-pytorch/train.py
@@ -87,15 +87,13 @@ def train():
     # 加载模型
     model = LaneNet(arch=args.model_type)
     model.to(DEVICE)
+    # 设置优化器
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
     print(f"{args.epochs} epochs {len(train_dataset)} training samples\n")
-    # 暂未使用Todo
-    if args.checkpoint:
-        RESUME = 1
-    else:
-        RESUME = 0
 
-    # 训练
+    # 设置scheduler. ready to test
+    #scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer,milestones = [30,80], gamma=0.9, last_epoch=-1)
+    # 开始训练
     model, log = train_model(model,
                              optimizer,
                              scheduler=None,
@@ -103,7 +101,8 @@ def train():
                              dataset_sizes=dataset_sizes,
                              device=DEVICE,
                              loss_type=args.loss_type,
-                             num_epochs=args.epochs)
+                             num_epochs=args.epochs,
+                             checkpoint=args.checkpoint)
 
     # 日志
     df = pd.DataFrame({'epoch': [], 'training_loss': [], 'val_loss': []})
