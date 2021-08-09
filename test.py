@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-08-03 16:30:37
-LastEditTime: 2021-08-05 16:14:37
+LastEditTime: 2021-08-05 18:08:07
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: /undefined/Users/wk/Desktop/Mac_Workspaces/lanenet-lane-detection-pytorch/test.py
@@ -64,7 +64,8 @@ def test():
     input = Image.open(img_path)
     input = input.resize((resize_width, resize_height))
     input = np.array(input)
-
+     
+    # TODO output压到一维聚类
     instance_pred = torch.squeeze(
         outputs['instance_seg_logits'].detach().to('cpu')).numpy() * 255
     binary_pred = torch.squeeze(

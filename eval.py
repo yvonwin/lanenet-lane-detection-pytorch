@@ -1,3 +1,11 @@
+'''
+Author: your name
+Date: 2021-08-03 16:30:37
+LastEditTime: 2021-08-06 14:44:20
+LastEditors: Please set LastEditors
+Description: In User Settings Edit
+FilePath: /lanenet-lane-detection-pytorch/eval.py
+'''
 import time
 import os
 import sys
@@ -42,7 +50,10 @@ def evaluation():
 
     model_path = args.model
     model = LaneNet(arch=args.model_type)
-    state_dict = torch.load(model_path)
+    if DEVICE == 'cuda:0':
+        state_dict = torch.load(model_path)
+    else:
+        state_dict = torch.load(model_path, map_location=torch.device('cpu'))
     model.load_state_dict(state_dict)
     model.eval()
     model.to(DEVICE)
