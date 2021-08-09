@@ -127,7 +127,7 @@ def train_model(model,
                     best_loss = epoch_loss
                     best_model_wts = copy.deepcopy(model.state_dict())
         print()
-        #  保存checkpoint 每隔几个epoch一次
+        #  保存checkpoint 每隔5个epoch一次
         save_interval = 5
         if (epoch + 1) % save_interval == 0:
             checkpoint = {
