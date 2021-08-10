@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-08-03 16:30:37
-LastEditTime: 2021-08-09 11:11:19
+LastEditTime: 2021-08-10 11:14:52
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: /lanenet-lane-detection-pytorch/model/utils/cli_helper.py
@@ -11,7 +11,7 @@ import argparse
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset", help="Dataset path", default='./dataset_new')
-    parser.add_argument("--model_type", help="Model type", default='ENet')
+    parser.add_argument("--model_type", help="Model type", default='DeepLabv3+')
     parser.add_argument("--loss_type", help="Loss type", default='FocalLoss')
     parser.add_argument("--save", required=False, help="Directory to save model", default="./log")
     parser.add_argument("--epochs", required=False, type=int, help="Training epochs", default=25)

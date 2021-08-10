@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-08-03 16:30:37
-LastEditTime: 2021-08-05 18:27:53
+LastEditTime: 2021-08-10 11:15:00
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: /lanenet-lane-detection-pytorch/model/utils/cli_helper_test.py
@@ -11,7 +11,7 @@ import argparse
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--img", help="Img path")
-    parser.add_argument("--model_type", help="Model type", default='ENet')
+    parser.add_argument("--model_type", help="Model type", default='DeepLabv3+')
     parser.add_argument("--model", help="Model path", default='./log/best_model.pth')
     parser.add_argument("--width", required=False, type=int, help="Resize width", default=512)
     parser.add_argument("--height", required=False, type=int, help="Resize height", default=256)

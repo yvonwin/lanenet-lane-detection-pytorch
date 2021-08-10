@@ -55,6 +55,7 @@ class Deeplabv3plus_Encoder(nn.Module):
 			elif isinstance(m, nn.BatchNorm2d):
 				weights_init_kaiming(m)
 
+		# 更换backbone模型
 		#self.backbone = build_backbone('res101_atrous', os=16)
 		self.backbone = build_backbone('xception', os=16)
 		self.backbone_layers = self.backbone.get_layers()
