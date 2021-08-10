@@ -1,14 +1,14 @@
 '''
 Author: your name
 Date: 2021-08-03 16:30:37
-LastEditTime: 2021-08-09 17:30:09
+LastEditTime: 2021-08-10 13:37:02
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: /lanenet-lane-detection-pytorch/train.py
 '''
-import time
+# import time
 import os
-import sys
+# import sys
 
 import torch
 from model.lanenet.train_lanenet import train_model
@@ -16,16 +16,16 @@ from dataloader.data_loaders import TusimpleSet
 from dataloader.transformers import Rescale
 from model.lanenet.LaneNet import LaneNet
 from torch.utils.data import DataLoader
-from torch.autograd import Variable
+# from torch.autograd import Variable
 
 from torchvision import transforms
 
 from model.utils.cli_helper import parse_args
-from model.eval_function import Eval_Score
+# from model.eval_function import Eval_Score
 
-import numpy as np
+# import numpy as np
 import pandas as pd
-import cv2
+# import cv2
 
 DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
@@ -55,7 +55,6 @@ def train():
             transforms.RandomVerticalFlip(p=0.5),
             transforms.RandomHorizontalFlip(p=0.5),
             transforms.RandomRotation(10),
-            
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ]),
@@ -97,7 +96,7 @@ def train():
     print(f"{args.epochs} epochs {len(train_dataset)} training samples\n")
 
     # 设置scheduler. ready to test
-    #scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer,milestones = [30,80], gamma=0.9, last_epoch=-1)
+    # scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer,milestones = [30,80], gamma=0.9, last_epoch=-1)
     # 开始训练
     model, log = train_model(model,
                              optimizer,

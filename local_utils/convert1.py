@@ -1,18 +1,19 @@
 '''
 Author: your name
 Date: 2021-08-03 14:14:42
-LastEditTime: 2021-08-05 16:07:36
+LastEditTime: 2021-08-10 13:51:45
 LastEditors: Please set LastEditors
-Description: 批量生成tusimple格式
+Description: In User Settings Edit
 FilePath: /labelme处理/convert1.py
 '''
 
 import cv2
 from skimage import measure, color
-from skimage.measure import regionprops
+# from skimage.measure import regionprops
 import numpy as np
 import os
 import copy
+import glob
 
 
 def replace_color(img, src_clr, dst_clr):
@@ -76,24 +77,25 @@ def moveImageTodir(path, targetPath, name):
         os.makedirs(gt_image_dir, exist_ok=True)
         os.makedirs(gt_binary_dir, exist_ok=True)
         os.makedirs(gt_instance_dir, exist_ok=True)
-        image_name =  "gt_image/" + str(name) + ".png"  #原图
+        image_name = "gt_image/" + str(name) + ".png"  #原图
         binary_name = "gt_binary_image/" + str(name) + ".png"  #标签图
         instance_name = "gt_instance_image/" + str(name) + ".png"
-        
 
-        train_rows = targetPath+'/'+image_name + " " +targetPath+'/' +binary_name + " " +targetPath+'/'+instance_name + "\n"
+        train_rows = targetPath + '/' + image_name + " " + targetPath + '/' + binary_name + " " + targetPath + '/' + instance_name + "\n"
+        # 无需打印Path打印Path只是为了方便找出问题
+        # train_rows = targetPath+'/'+image_name + " " +targetPath+'/' +binary_name + " " +targetPath+'/'+instance_name + "\n"+path
 
-        #train_rows = image_name + " " + binary_name + " " + "1 1 1 1" + "\n"  #数据标注内容，可自定义
+        # train_rows = image_name + " " + binary_name + " " + "1 1 1 1" + "\n"  #数据标注内容，可自定义
 
         origin_img = cv2.imread(path + "/img.png")
-        #origin_img = cv2.resize(origin_img, (704, 576))
+        # origin_img = cv2.resize(origin_img, (704, 576))
         cv2.imwrite(targetPath + "/" + image_name, origin_img)
 
         img = cv2.imread(path + '/label.png')
-        #img = cv2.resize(img, (704, 576))
+        # img = cv2.resize(img, (704, 576))
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         binary_warped, instance = skimageFilter2(gray)
-        #binary_warped = cv2.cvtColor(binary_warped, cv2.COLOR_BGR2GRAY)
+        # binary_warped = cv2.cvtColor(binary_warped, cv2.COLOR_BGR2GRAY)
         cv2.imwrite(targetPath + "/" + binary_name, binary_warped)
         cv2.imwrite(targetPath + "/" + instance_name, instance)
         print("success create data name is : ", train_rows)
@@ -101,20 +103,46 @@ def moveImageTodir(path, targetPath, name):
     return None
 
 
-if __name__ == "__main__":
+def main():
     #ep = "D:/File/Winscp/20.png"
     #img = cv2.imread(ep)
     #getimagelabel(img)
     count = 1
     with open("./train.txt", 'w+') as file:
+        #dir_name = "./test_dir/02/"  #os.path.join("./images", images_dir + "/annotations")#上一个生成的文件目录，即保存转换好的标签的目录
+        for dir_name in glob.glob('./test_dir/*'):
+            print(dir_name)
+            for annotations_dir in os.listdir(dir_name):
+                # print("********", annotations_dir)
+                json_dir = os.path.join(dir_name, annotations_dir)
+                if os.path.isdir(json_dir):
+                    # train_rows = moveImageTodir(json_dir, "/Users/wk/Desktop/labelme处理/dataset_tmp",
+                    #                             str(count).zfill(4))
+                    train_rows = moveImageTodir(json_dir, "./dataset_new",
+                                                str(count).zfill(4))
+                    file.write(train_rows)
+                    count += 1
 
-        dir_name = "./test_dir/01/"  #os.path.join("./images", images_dir + "/annotations")#上一个生成的文件目录，即保存转换好的标签的目录
+
+def main1():
+    # ep = "D:/File/Winscp/20.png"
+    # img = cv2.imread(ep)
+    # getimagelabel(img)
+    count = 1
+    with open("./train.txt", 'w+') as file:
+        # dir_name = "./test_dir/02/"  #os.path.join("./images", images_dir + "/annotations")#上一个生成的文件目录，即保存转换好的标签的目录
+        dir_name = './dataset_day_1/'
         for annotations_dir in os.listdir(dir_name):
-            #print("********", annotations_dir)
+            # print("********", annotations_dir)
             json_dir = os.path.join(dir_name, annotations_dir)
             if os.path.isdir(json_dir):
-
-                train_rows = moveImageTodir(json_dir, "/Users/wk/Desktop/labelme处理/test_dir/test",
+                # train_rows = moveImageTodir(json_dir, "/Users/wk/Desktop/labelme处理/dataset_tmp",
+                #                             str(count).zfill(4))
+                train_rows = moveImageTodir(json_dir, "./dataset_new",
                                             str(count).zfill(4))
                 file.write(train_rows)
                 count += 1
+
+
+if __name__ == "__main__":
+    main1()

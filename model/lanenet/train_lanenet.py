@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
-import torch.optim as optim
-from torch.optim import lr_scheduler
+# import torch.optim as optim
+# from torch.optim import lr_scheduler
 import numpy as np
 import time
 import copy
@@ -13,7 +13,7 @@ def compute_loss(net_output,
                  binary_label,
                  instance_label,
                  loss_type='FocalLoss'):
-    k_binary = 10  #1.7
+    k_binary = 10  # 1.7
     k_instance = 0.3
     k_dist = 1.0
 
@@ -41,15 +41,16 @@ def compute_loss(net_output,
     return total_loss, binary_loss, instance_loss, out
 
 
-def train_model(model,
-                optimizer,
-                scheduler, # unuse now
-                dataloaders,
-                dataset_sizes,
-                device,
-                loss_type='FocalLoss',
-                num_epochs=25,
-                checkpoint=False):
+def train_model(
+        model,
+        optimizer,
+        scheduler,  # unuse now
+        dataloaders,
+        dataset_sizes,
+        device,
+        loss_type='FocalLoss',
+        num_epochs=25,
+        checkpoint=False):
     # scheduler.step()                 # 学习率调整
     # now_lr = scheduler.get_lr()      # 更新学习率
     since = time.time()

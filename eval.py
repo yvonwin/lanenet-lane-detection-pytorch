@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-08-03 16:30:37
-LastEditTime: 2021-08-06 14:44:20
+LastEditTime: 2021-08-10 16:18:06
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: /lanenet-lane-detection-pytorch/eval.py
@@ -59,6 +59,7 @@ def evaluation():
     model.to(DEVICE)
 
     iou, dice = 0, 0
+    start_time = time.time()
     with torch.no_grad():
         for x, target, _ in eval_dataloader:
             y = model(x.to(DEVICE))
@@ -67,10 +68,12 @@ def evaluation():
             Score = Eval_Score(y_pred, y_true)
             dice += Score.Dice()
             iou += Score.IoU()
-    
+    end_time = time.time()
+    print(end_time-start_time)
     print('Final_IoU: %s'% str(iou/len(eval_dataloader.dataset)))
     print('Final_F1: %s'% str(dice/len(eval_dataloader.dataset)))
 
 
 if __name__ == "__main__":
+
     evaluation()
