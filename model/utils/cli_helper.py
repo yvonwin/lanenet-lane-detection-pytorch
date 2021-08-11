@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-08-03 16:30:37
-LastEditTime: 2021-08-11 11:22:54
+LastEditTime: 2021-08-11 17:04:48
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: /lanenet-lane-detection-pytorch/model/utils/cli_helper.py
@@ -13,7 +13,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset",
                         help="Dataset path",
-                        default='./dataset_new')
+                        default='./data/training_data_example')
     parser.add_argument("--model_type",
                         help="Model type",
                         default='DeepLabv3+')
@@ -59,7 +59,12 @@ def parse_args():
     parser.add_argument("--image",
                         default="./output",
                         help="output image folder")
-    parser.add_argument("--net", help="backbone network")
+    parser.add_argument("--backend",
+                        help="backbone network",
+                        default='resnet101')
+    parser.add_argument("--use_aug",
+                        help="use data augmentation",
+                        default=False)
     parser.add_argument("--json", help="post processing json")
     parser.add_argument("--checkpoint", required=False, help="checkpoint path")
     parser.add_argument("--num_workers", required=False, default=4, type=int)

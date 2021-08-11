@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-08-03 16:30:37
-LastEditTime: 2021-08-10 13:31:35
+LastEditTime: 2021-08-11 16:53:41
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: /lanenet-lane-detection-pytorch/model/utils/cli_helper_eval.py
@@ -33,4 +33,7 @@ def parse_args():
     parser.add_argument("--save",
                         help="Directory to save output",
                         default="./test_output")
+    parser.add_argument("--backend",
+                        help="backbone network",
+                        default='resnet101')
     return parser.parse_args()

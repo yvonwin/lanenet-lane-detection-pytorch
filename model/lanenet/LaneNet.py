@@ -1,3 +1,11 @@
+'''
+Author: your name
+Date: 2021-08-03 16:30:37
+LastEditTime: 2021-08-11 16:51:10
+LastEditors: Please set LastEditors
+Description: In User Settings Edit
+FilePath: /lanenet-lane-detection-pytorch/model/lanenet/LaneNet.py
+'''
 # coding: utf-8
 """
 LaneNet model
@@ -16,12 +24,13 @@ DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 
 class LaneNet(nn.Module):
-    def __init__(self, in_ch = 3, arch="ENet"):
+    def __init__(self, in_ch = 3, arch="ENet", backend='resnet101'):
         super(LaneNet, self).__init__()
         # no of instances for segmentation
         self.no_of_instances = 3  # if you want to output RGB instance map, it should be 3.
         print("Use {} as backbone".format(arch))
         self._arch = arch
+        self._backend = backend
         if self._arch == 'UNet':
             self._encoder = UNet_Encoder(in_ch)
             self._encoder.to(DEVICE)
@@ -39,7 +48,7 @@ class LaneNet(nn.Module):
             self._decoder_binary.to(DEVICE)
             self._decoder_instance.to(DEVICE)
         elif self._arch == 'DeepLabv3+':
-            self._encoder = Deeplabv3plus_Encoder()
+            self._encoder = Deeplabv3plus_Encoder(self._backend)
             self._encoder.to(DEVICE)
 
             self._decoder_binary = Deeplabv3plus_Decoder(2)

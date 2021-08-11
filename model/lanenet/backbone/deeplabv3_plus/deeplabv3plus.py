@@ -26,7 +26,7 @@ def weights_init_kaiming(m):
 
 
 class Deeplabv3plus_Encoder(nn.Module):
-    def __init__(self):
+    def __init__(self, backend='resnet101'):
         super(Deeplabv3plus_Encoder, self).__init__()
         self.backbone = None
         self.backbone_layers = None
@@ -55,8 +55,11 @@ class Deeplabv3plus_Encoder(nn.Module):
                 weights_init_kaiming(m)
 
         # 更换backbone模型
-        self.backbone = build_backbone('res101_atrous', os=16)
-        #  self.backbone = build_backbone('xception', os=16)
+        if backend == 'resnet101':
+            self.backbone = build_backbone('res101_atrous', os=16)
+        if backend == 'xception': 
+            self.backbone = build_backbone('xception', os=16)
+        print('Use backend:', backend)
         self.backbone_layers = self.backbone.get_layers()
 
     def forward(self, x):

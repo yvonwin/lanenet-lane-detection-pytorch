@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-08-03 16:30:37
-LastEditTime: 2021-08-10 13:32:04
+LastEditTime: 2021-08-11 16:53:33
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: /lanenet-lane-detection-pytorch/model/utils/cli_helper_test.py
@@ -35,4 +35,7 @@ def parse_args():
                         type=str,
                         default='./data/test_img/',
                         help='The path of image to be tested')
+    parser.add_argument("--backend",
+                        help="backbone network",
+                        default='resnet101')
     return parser.parse_args()
