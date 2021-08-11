@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-08-03 16:30:37
-LastEditTime: 2021-08-10 13:37:02
+LastEditTime: 2021-08-11 14:00:58
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: /lanenet-lane-detection-pytorch/train.py
@@ -74,7 +74,12 @@ def train():
     train_dataset = TusimpleSet(train_dataset_file,
                                 transform=data_transforms['train'],
                                 target_transform=target_transforms)
-    train_loader = DataLoader(train_dataset, batch_size=args.bs, shuffle=True)
+    # train_loader = DataLoader(train_dataset, batch_size=args.bs, shuffle=True)
+    train_loader = DataLoader(train_dataset,
+                              batch_size=args.bs,
+                              shuffle=True,
+                              num_workers=args.num_workers,
+                              pin_memory=False)  # 如果内存够的话 , 可以开启pin_memory=True
 
     # 验证数据加载
     val_dataset = TusimpleSet(val_dataset_file,

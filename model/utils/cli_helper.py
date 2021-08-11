@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-08-03 16:30:37
-LastEditTime: 2021-08-10 13:32:11
+LastEditTime: 2021-08-11 11:22:54
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: /lanenet-lane-detection-pytorch/model/utils/cli_helper.py
@@ -62,4 +62,5 @@ def parse_args():
     parser.add_argument("--net", help="backbone network")
     parser.add_argument("--json", help="post processing json")
     parser.add_argument("--checkpoint", required=False, help="checkpoint path")
+    parser.add_argument("--num_workers", required=False, default=4, type=int)
     return parser.parse_args()
