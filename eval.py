@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-08-03 16:30:37
-LastEditTime: 2021-08-11 14:10:25
+LastEditTime: 2021-08-12 11:18:44
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: /lanenet-lane-detection-pytorch/eval.py
@@ -52,7 +52,7 @@ def evaluation():
     eval_dataloader = DataLoader(Eval_Dataset, batch_size=1, shuffle=True)
 
     model_path = args.model
-    model = LaneNet(arch=args.model_type)
+    model = LaneNet(arch=args.model_type, backend=args.backend)
     if DEVICE == 'cuda:0':
         state_dict = torch.load(model_path)
     else:
