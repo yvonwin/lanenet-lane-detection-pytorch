@@ -99,6 +99,7 @@ def train_model(
                     if phase == 'train':
                         loss[0].backward()
                         optimizer.step()
+                        print('这一阶段学习率为:', optimizer.param_groups[0]['lr'])
 
                 # statistics
                 running_loss += loss[0].item() * inputs.size(0)
