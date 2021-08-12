@@ -99,7 +99,6 @@ def train_model(
                     if phase == 'train':
                         loss[0].backward()
                         optimizer.step()
-                        print('这一阶段学习率为:', optimizer.param_groups[0]['lr'])
 
                 # statistics
                 running_loss += loss[0].item() * inputs.size(0)
@@ -109,7 +108,8 @@ def train_model(
             if phase == 'train':
                 if scheduler != None:
                     scheduler.step()
-
+            # 打印学习率
+            print('这一阶段学习率为:', optimizer.param_groups[0]['lr'])
             epoch_loss = running_loss / dataset_sizes[phase]
             binary_loss = running_loss_b / dataset_sizes[phase]
             instance_loss = running_loss_i / dataset_sizes[phase]
