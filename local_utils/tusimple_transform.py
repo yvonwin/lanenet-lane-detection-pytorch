@@ -1,9 +1,9 @@
 '''
 Author: your name
 Date: 2021-08-03 14:14:42
-LastEditTime: 2021-08-10 13:51:45
+LastEditTime: 2021-08-12 16:29:32
 LastEditors: Please set LastEditors
-Description: In User Settings Edit
+Description: 生成tusimple格式的标注文件
 FilePath: /labelme处理/convert1.py
 '''
 
@@ -14,6 +14,34 @@ import numpy as np
 import os
 import copy
 import glob
+import argparse
+import random
+
+
+def init_args():
+    """
+    :return:
+    """
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--src_dir',
+                        type=str,
+                        help='The origin path of unzipped tusimple dataset')
+    parser.add_argument('--val',
+                        type=bool,
+                        help='Tag for validation set',
+                        default=True)
+    parser.add_argument('--test',
+                        type=bool,
+                        help='Tag for validation set',
+                        default=False)
+
+    parser.add_argument('--save_dir',
+                        type=str,
+                        help='Save_path',
+                        default='./dataset_new')
+    parser.add_argument('--single', type=int, help='处理单个文件夹', default=1)
+
+    return parser.parse_args()
 
 
 def replace_color(img, src_clr, dst_clr):
@@ -83,7 +111,7 @@ def moveImageTodir(path, targetPath, name):
 
         train_rows = targetPath + '/' + image_name + " " + targetPath + '/' + binary_name + " " + targetPath + '/' + instance_name + "\n"
         # 无需打印Path打印Path只是为了方便找出问题
-        # train_rows = targetPath+'/'+image_name + " " +targetPath+'/' +binary_name + " " +targetPath+'/'+instance_name + "\n"+path
+        #train_rows = targetPath+'/'+image_name + " " +targetPath+'/' +binary_name + " " +targetPath+'/'+instance_name + "\n"+path
 
         # train_rows = image_name + " " + binary_name + " " + "1 1 1 1" + "\n"  #数据标注内容，可自定义
 
@@ -103,46 +131,82 @@ def moveImageTodir(path, targetPath, name):
     return None
 
 
-def main():
-    #ep = "D:/File/Winscp/20.png"
-    #img = cv2.imread(ep)
-    #getimagelabel(img)
-    count = 1
-    with open("./train.txt", 'w+') as file:
-        #dir_name = "./test_dir/02/"  #os.path.join("./images", images_dir + "/annotations")#上一个生成的文件目录，即保存转换好的标签的目录
-        for dir_name in glob.glob('./test_dir/*'):
-            print(dir_name)
-            for annotations_dir in os.listdir(dir_name):
-                # print("********", annotations_dir)
-                json_dir = os.path.join(dir_name, annotations_dir)
-                if os.path.isdir(json_dir):
-                    # train_rows = moveImageTodir(json_dir, "/Users/wk/Desktop/labelme处理/dataset_tmp",
-                    #                             str(count).zfill(4))
-                    train_rows = moveImageTodir(json_dir, "./dataset_new",
-                                                str(count).zfill(4))
-                    file.write(train_rows)
-                    count += 1
+def split_data(full_list, ratio1, ratio2=False, shuffle=True):
+    '''
+    将数据集按照指定比例划分为训练集和测试集
+    :param full_list: 原始数据集
+    :param ratio: 训练集占比
+    :param shuffle: 是否打乱数据
+    :return: 训练集和测试集
+    '''
+    n_total = len(full_list)
+    offset = int(n_total * ratio1)
+
+    if n_total == 0 or offset < 1:
+        return [], full_list
+    if shuffle:
+        random.shuffle(full_list)
+    if not ratio2:
+        sub_list_1 = full_list[:offset]
+        sub_list_2 = full_list[offset:]
+        return sub_list_1, sub_list_2
+    else:
+        offset1 = int(n_total * (ratio1 + ratio2))
+        sub_list_1 = full_list[:offset]
+        print("train_numbers:", len(sub_list_1))
+        sub_list_2 = full_list[offset:offset1]
+        sub_list_3 = full_list[offset1:]
+        return sub_list_1, sub_list_2, sub_list_3
 
 
-def main1():
-    # ep = "D:/File/Winscp/20.png"
-    # img = cv2.imread(ep)
-    # getimagelabel(img)
+def gen_train_val_sample(src_dir, save_path, singe=0):
+    '''
+    生成训练集和测试集
+    :param src_dir: 原始文件夹
+    :param save_path: 生成的训练集和测试集的文件夹
+    :param singe: 是否为单个文件夹
+    '''
     count = 1
-    with open("./train.txt", 'w+') as file:
-        # dir_name = "./test_dir/02/"  #os.path.join("./images", images_dir + "/annotations")#上一个生成的文件目录，即保存转换好的标签的目录
-        dir_name = './dataset_day_1/'
-        for annotations_dir in os.listdir(dir_name):
-            # print("********", annotations_dir)
-            json_dir = os.path.join(dir_name, annotations_dir)
+    src_list = os.listdir(src_dir)
+    if singe:
+        src_list = glob.glob(src_dir + "/*_json")
+    else:
+        src_list = glob.glob(src_dir + "/*/*_json")
+    print(len(src_list))
+    trian_data, val_data, test_data = split_data(src_list,
+                                                 0.8,
+                                                 0.1,
+                                                 shuffle=True)
+    os.makedirs(save_path, exist_ok=True)
+    with open("{:s}/train.txt".format(save_path), 'w+') as file:
+        for annotations_dir in trian_data:
+            json_dir = os.path.join(src_dir, annotations_dir)
             if os.path.isdir(json_dir):
-                # train_rows = moveImageTodir(json_dir, "/Users/wk/Desktop/labelme处理/dataset_tmp",
-                #                             str(count).zfill(4))
-                train_rows = moveImageTodir(json_dir, "./dataset_new",
+                train_rows = moveImageTodir(json_dir, save_path,
+                                            str(count).zfill(4))
+                file.write(train_rows)
+                count += 1
+
+    with open("{:s}/val.txt".format(save_path), 'w+') as file:
+        for annotations_dir in val_data:
+            json_dir = os.path.join(src_dir, annotations_dir)
+            if os.path.isdir(json_dir):
+                train_rows = moveImageTodir(json_dir, save_path,
+                                            str(count).zfill(4))
+                file.write(train_rows)
+                count += 1
+
+    with open("{:s}/test.txt".format(save_path), 'w+') as file:
+        for annotations_dir in test_data:
+            json_dir = os.path.join(src_dir, annotations_dir)
+            if os.path.isdir(json_dir):
+                train_rows = moveImageTodir(json_dir, save_path,
                                             str(count).zfill(4))
                 file.write(train_rows)
                 count += 1
 
 
 if __name__ == "__main__":
-    main1()
+    print('help: python convert1.py --src_dir  --save_dir   --single')
+    args = init_args()
+    gen_train_val_sample(args.src_dir, args.save_dir, args.single)
