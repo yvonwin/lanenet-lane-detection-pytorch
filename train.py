@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-08-03 16:30:37
-LastEditTime: 2021-08-11 17:14:47
+LastEditTime: 2021-08-12 17:40:15
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: /lanenet-lane-detection-pytorch/train.py
@@ -129,11 +129,11 @@ def train():
     # 设置scheduler. TODO:test scheduler
     # scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer,milestones = [30,80], gamma=0.5, last_epoch=-1)
     # scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=5, verbose=True,
-    # scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=15, eta_min=1e-4)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=15, eta_min=1e-4)
     # 开始训练
     model, log = train_model(model,
                              optimizer,
-                             scheduler=None,
+                             scheduler=scheduler,
                              dataloaders=dataloaders,
                              dataset_sizes=dataset_sizes,
                              device=DEVICE,

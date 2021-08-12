@@ -51,8 +51,6 @@ def train_model(
         loss_type='FocalLoss',
         num_epochs=25,
         checkpoint=False):
-    # scheduler.step()                 # 学习率调整
-    # now_lr = scheduler.get_lr()      # 更新学习率
     since = time.time()
     training_log = {'epoch': [], 'training_loss': [], 'val_loss': []}
     best_loss = float("inf")
