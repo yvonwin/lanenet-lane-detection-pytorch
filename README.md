@@ -54,12 +54,16 @@ python train.py --dataset path/to/tusimpledataset/training
 ```
 Using tusimple folder with ENet/Cross Entropy loss:   
 ```
-python train.py --dataset path/to/tusimpledataset/training --loss_type CrossEntropyLoss
+python train.py --dataset path/to/tusimpledataset/training --model_type ENet --loss_type CrossEntropyLoss
 ```
 Using tusimple folder with DeepLabv3+:   
 ```
 python train.py --dataset path/to/tusimpledataset/training --model_type DeepLabv3+
 ```    
+use xception backend
+```
+python train.py --dataset path/to/tusimpledataset/training --model_type DeepLabv3+ --backend xception
+```
 
 If you want to change focal loss to cross entropy loss, do not forget to adjust the hyper-parameter of instance loss and binary loss in ./model/lanenet/train_lanenet.py    
 
@@ -68,6 +72,10 @@ A pretrained trained model by myself is located in ./log (only trained in 25 epo
 Test the model:    
 ```
 python test.py --img ./data/tusimple_test_image/0.jpg
+```
+Test img_dir
+```
+python test_lanenet.py --src_dir ./test_img
 ```
 The testing result is here:    
 ![Input test image](./data/source_image/input.jpg)    
@@ -87,7 +95,7 @@ Focal loss (update 2021.7.20) is also supported.
 - [x] Discriminative loss for instance segmentation    
 - [x] DeepLabv3+ Encoder and DeepLabv3+ decoder (2021/7/16)
 - [x] Focal loss for binary branch (2021/7/22)
-- ~~[ ] Post Processing (will release 2021/7/26)~~
+- [ ] Post Processing (will release 2021/7/26)
 - ~~[ ] Use other new encoder-decoder structure~~
 - ~~[ ] Add H-Net and merge the H-Net model to the main lanenet model~~
 
