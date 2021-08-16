@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-08-03 16:30:37
-LastEditTime: 2021-08-16 15:02:58
+LastEditTime: 2021-08-16 18:12:27
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: /lanenet-lane-detection-pytorch/train.py
@@ -156,8 +156,8 @@ def train():
     # 保存模型 训练完保存模型。
     save_time = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
     model_save_filename = os.path.join(
-        save_path, save_time + '_epochs' + str(args.epochs) + '_' + args.model_type +
-        '_' + args.backend + '_best_model.pth')
+        save_path, save_time + '_epochs' + str(args.epochs) + '_' +
+        args.model_type + '_' + args.backend + '_best_model.pth')
     torch.save(model.state_dict(), model_save_filename)
     # print("model is saved: {}".format(model_save_filename))
     LOG.info("model is saved: {}".format(model_save_filename))

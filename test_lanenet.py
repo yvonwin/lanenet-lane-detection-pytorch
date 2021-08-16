@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-08-05 17:41:49
-LastEditTime: 2021-08-13 16:05:32
+LastEditTime: 2021-08-16 18:11:32
 LastEditors: Please set LastEditors
 Description: 批量测试文件夹中的图片
 FilePath: /lanenet-lane-detection-pytorch/test_lanenet.py
@@ -58,7 +58,7 @@ def test_lanenet():
 
     model_path = args.model
     model = LaneNet(arch=args.model_type, backend=args.backend)
-    if DEVICE == 'cuda:0':
+    if torch.cuda.is_available():
         state_dict = torch.load(model_path)  # 默认保存的模型是gpu
     else:
         state_dict = torch.load(model_path,
