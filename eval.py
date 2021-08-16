@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-08-03 16:30:37
-LastEditTime: 2021-08-16 15:58:30
+LastEditTime: 2021-08-16 18:15:01
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: /lanenet-lane-detection-pytorch/eval.py
@@ -59,7 +59,7 @@ def evaluation():
 
     model_path = args.model
     model = LaneNet(arch=args.model_type, backend=args.backend)
-    if DEVICE == 'cuda:0':
+    if torch.cuda.is_available():
         LOG.info('Using GPU')
         state_dict = torch.load(model_path)
     else:
