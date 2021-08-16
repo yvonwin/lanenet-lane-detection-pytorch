@@ -2,14 +2,17 @@ import torch
 import torch.nn as nn
 # import torch.optim as optim
 # from torch.optim import lr_scheduler
-import numpy as np
+# import numpy as np
 import time
 import copy
 import os
 from model.lanenet.loss import DiscriminativeLoss, FocalLoss
-import  loguru
+from model.utils import cli_helper
+import loguru
 
 LOG = loguru.logger
+
+
 def compute_loss(net_output,
                  binary_label,
                  instance_label,
@@ -50,14 +53,14 @@ def train_model(
         dataset_sizes,
         device,
         loss_type='FocalLoss',
-        num_epochs=25,
-        checkpoint=False):
+        num_epochs=25):
+    args = cli_helper.parse_args()
     since = time.time()
     best_loss = float("inf")
     start_epoch = 0
     #  加载断点
-    if checkpoint:
-        checkpoint = torch.load(checkpoint)  # 加载断点
+    if args.checkpoint:
+        checkpoint = torch.load(args.checkpoint)  # 加载断点
         model.load_state_dict(checkpoint['net'])  # 加载可学习参数
         optimizer.load_state_dict(checkpoint['optimizer'])  # 加载优化器参数
         start_epoch = checkpoint['epoch']  # 设置开始的epoch 通过它来保证训练时epoch不会变化
@@ -67,8 +70,8 @@ def train_model(
     # 打印学习率
     print('这一阶段学习率为:', optimizer.param_groups[0]['lr'])
     for epoch in range(start_epoch, num_epochs):
-        print('Epoch {}/{}'.format(epoch, num_epochs - 1))
-        print('-' * 10)
+        # print('Epoch {}/{}'.format(epoch, num_epochs - 1))
+        # print('-' * 10)
 
         # Each epoch has a training and validation phase
         for phase in ['train', 'val']:
@@ -107,23 +110,21 @@ def train_model(
                 running_loss_i += loss[2].item() * inputs.size(0)
 
             if phase == 'train':
-                if scheduler != None:
+                if scheduler is None:
                     scheduler.step()
 
             epoch_loss = running_loss / dataset_sizes[phase]
             binary_loss = running_loss_b / dataset_sizes[phase]
             instance_loss = running_loss_i / dataset_sizes[phase]
-            print(
-                '{} Total Loss: {:.4f} Binary Loss: {:.4f} Instance Loss: {:.4f}'
-                .format(phase, epoch_loss, binary_loss, instance_loss))
+            # print(
+            #    '{} Total Loss: {:.4f} Binary Loss: {:.4f} Instance Loss: {:.4f}'
+            #    .format(phase, epoch_loss, binary_loss, instance_loss))
             # add log
-            log_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-            LOG.info('=> Epoch: {:d} Time: {:s} {} Total Loss: {:.4f} Binary Loss: {:.4f} Instance Loss: {:.4f}'.format(
-                        epoch,
-                        log_time,
-                        phase,
-                        epoch_loss,
-                        binary_loss,
+            log_time = time.strftime('%Y-%m-%d %H:%M:%S',
+                                     time.localtime(time.time()))
+            LOG.info(
+                '=> Epoch: {:d} Time: {:s} {} Total Loss: {:.4f} Binary Loss: {:.4f} Instance Loss: {:.4f}'
+                .format(epoch, log_time, phase, epoch_loss, binary_loss,
                         instance_loss))
 
             # deep copy the model
@@ -140,15 +141,22 @@ def train_model(
                 "optimizer": optimizer.state_dict(),
                 "epoch": epoch + 1,
             }
-            if not os.path.exists("./log/checkpoints"):
-                os.makedirs('./log/checkpoints')
-            torch.save(checkpoint,
-                       './log/checkpoints/ckpt_best_%s.pth' % (str(epoch)))     
-
+            save_time = time.strftime('%Y-%m-%d-%H-%M-%S',
+                                      time.localtime(time.time()))
+            checkpoint_path = os.path.join(args.save,
+                                           save_time + 'checkpoints')
+            if not os.path.exists(checkpoint_path):
+                os.makedirs(checkpoint_path)
+            torch.save(
+                checkpoint, checkpoint_path + '/ckpt_%sepoch_%s_%s.pth' %
+                (str(epoch), str(args.model_type), str(args.backend)))
+            LOG.info('save checkpoint: ' + checkpoint_path +
+                     '/ckpt_%sepoch_%s_%s.pth' %
+                     (str(epoch), str(args.model_type), str(args.backend)))
     time_elapsed = time.time() - since
-    print('Training complete in {:.0f}m {:.0f}s'.format(
-        time_elapsed // 60, time_elapsed % 60))
-    print('Best val_loss: {:4f}'.format(best_loss))
+    # print('Training complete in {:.0f}m {:.0f}s'.format(
+    #    time_elapsed // 60, time_elapsed % 60))
+    # print('Best val_loss: {:4f}'.format(best_loss))
     LOG.info('Training complete in {:.0f}m {:.0f}s'.format(
         time_elapsed // 60, time_elapsed % 60))
     LOG.info('Best val_loss: {:4f}'.format(best_loss))

@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-08-03 16:30:37
-LastEditTime: 2021-08-16 12:52:06
+LastEditTime: 2021-08-16 15:02:58
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: /lanenet-lane-detection-pytorch/train.py
@@ -42,7 +42,7 @@ def train():
     LOG.info('use dataset: %s' % args.dataset)
     LOG.info('log save_dir is: %s' % args.save)
     LOG.info('use loss_type %s' % args.loss_type)
-    #LOG.info('set epochs %s' % str(args.epochs))
+    # LOG.info('set epochs %s' % str(args.epochs))
     LOG.info('resize image_width is:%s, image_height is:%s\n' %
              (args.width, args.height))
     save_path = args.save
@@ -135,7 +135,7 @@ def train():
     model.to(DEVICE)
     # 设置优化器
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
-    print(f"{args.epochs} epochs {len(train_dataset)} training samples\n")
+    # print(f"{args.epochs} epochs {len(train_dataset)} training samples\n")
     LOG.info(f"{args.epochs} epochs {len(train_dataset)} training samples")
 
     # 设置scheduler. TODO:test scheduler
@@ -151,15 +151,16 @@ def train():
                         dataset_sizes=dataset_sizes,
                         device=DEVICE,
                         loss_type=args.loss_type,
-                        num_epochs=args.epochs,
-                        checkpoint=args.checkpoint)
+                        num_epochs=args.epochs)
 
     # 保存模型 训练完保存模型。
-    save_time = time.strftime('%Y-%m-%d-%H-%M-%S',
-                               time.localtime(time.time()))
-    model_save_filename = os.path.join(save_path, save_time+'best_model.pth')
+    save_time = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
+    model_save_filename = os.path.join(
+        save_path, save_time + '_epochs' + str(args.epochs) + '_' + args.model_type +
+        '_' + args.backend + '_best_model.pth')
     torch.save(model.state_dict(), model_save_filename)
-    print("model is saved: {}".format(model_save_filename))
+    # print("model is saved: {}".format(model_save_filename))
+    LOG.info("model is saved: {}".format(model_save_filename))
     LOG.info('Complete training process good luck!!')
     return
 

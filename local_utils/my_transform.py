@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-08-03 14:14:42
-LastEditTime: 2021-08-14 00:21:54
+LastEditTime: 2021-08-16 15:13:56
 LastEditors: Please set LastEditors
 Description: 生成tusimple格式的标注文件
 FilePath: /labelme处理/convert1.py
@@ -117,17 +117,21 @@ def moveImageTodir(path, targetPath, name):
 
         origin_img = cv2.imread(path + "/img.png")
         # origin_img = cv2.resize(origin_img, (704, 576))
-        cv2.imwrite(targetPath + "/" + image_name, origin_img)
+        try:
+            # 判断图片是否读取成功
+            cv2.imwrite(targetPath + "/" + image_name, origin_img)
 
-        img = cv2.imread(path + '/label.png')
-        # img = cv2.resize(img, (704, 576))
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        binary_warped, instance = skimageFilter2(gray)
-        # binary_warped = cv2.cvtColor(binary_warped, cv2.COLOR_BGR2GRAY)
-        cv2.imwrite(targetPath + "/" + binary_name, binary_warped)
-        cv2.imwrite(targetPath + "/" + instance_name, instance)
-        print("success create data name is : ", train_rows)
-        return train_rows
+            img = cv2.imread(path + '/label.png')
+            # img = cv2.resize(img, (704, 576))
+            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            binary_warped, instance = skimageFilter2(gray)
+            # binary_warped = cv2.cvtColor(binary_warped, cv2.COLOR_BGR2GRAY)
+            cv2.imwrite(targetPath + "/" + binary_name, binary_warped)
+            cv2.imwrite(targetPath + "/" + instance_name, instance)
+            print("success create data name is : ", train_rows)
+            return train_rows
+        except:
+            print("Can not read this image !")
     return None
 
 
@@ -186,7 +190,8 @@ def gen_train_val_sample(src_dir, save_path, singe=0):
             if os.path.isdir(json_dir):
                 train_rows = moveImageTodir(json_dir, save_path,
                                             str(count).zfill(4))
-                file.write(train_rows)
+                if train_rows is not None:
+                    file.write(train_rows)
                 count += 1
 
     with open("{:s}/val.txt".format(save_path), 'w+') as file:
@@ -195,7 +200,8 @@ def gen_train_val_sample(src_dir, save_path, singe=0):
             if os.path.isdir(json_dir):
                 train_rows = moveImageTodir(json_dir, save_path,
                                             str(count).zfill(4))
-                file.write(train_rows)
+                if train_rows is not None:
+                    file.write(train_rows)
                 count += 1
 
     with open("{:s}/test.txt".format(save_path), 'w+') as file:
@@ -204,11 +210,12 @@ def gen_train_val_sample(src_dir, save_path, singe=0):
             if os.path.isdir(json_dir):
                 train_rows = moveImageTodir(json_dir, save_path,
                                             str(count).zfill(4))
-                file.write(train_rows)
+                if train_rows is not None:
+                    file.write(train_rows)
                 count += 1
 
 
 if __name__ == "__main__":
-    print('help: python convert1.py --src_dir  --save_dir   --single')
+    print('help: python mytransform.py --src_dir  --save_dir   --single')
     args = init_args()
     gen_train_val_sample(args.src_dir, args.save_dir, args.single)

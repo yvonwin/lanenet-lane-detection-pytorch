@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-08-03 16:30:37
-LastEditTime: 2021-08-12 11:22:13
+LastEditTime: 2021-08-16 15:03:38
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: /lanenet-lane-detection-pytorch/model/utils/cli_helper.py
@@ -51,7 +51,7 @@ def parse_args():
                         required=False,
                         type=float,
                         help="Learning rate",
-                        default=0.0001)  # deeplabv3+原始是0.0007
+                        default=0.0007)  # deeplabv3+原始是0.0007
     parser.add_argument("--pretrained",
                         required=False,
                         default=None,
