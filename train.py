@@ -1,12 +1,12 @@
 '''
 Author: your name
 Date: 2021-08-03 16:30:37
-LastEditTime: 2021-08-12 17:40:15
+LastEditTime: 2021-08-16 12:23:24
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: /lanenet-lane-detection-pytorch/train.py
 '''
-# import time
+import time
 import os
 # import sys
 
@@ -25,6 +25,8 @@ from model.utils.cli_helper import parse_args
 
 # import numpy as np
 import pandas as pd
+from local_utils import init_logger
+import loguru
 # import cv2
 
 DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -32,6 +34,17 @@ DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 def train():
     args = parse_args()
+    LOG = init_logger.get_logger(log_file_name_prefix='lanenet_train')
+    LOG.info('use model_type %s' % args.model_type)
+    LOG.info('use backend %s' % args.backend)
+    LOG.info('use lr %s' % str(args.lr))
+    LOG.info('use augment? %s' % str(args.use_aug))
+    LOG.info('use dataset: %s' % args.dataset)
+    LOG.info('log save_dir is: %s' % args.save)
+    LOG.info('use loss_type %s' % args.loss_type)
+    #LOG.info('set epochs %s' % str(args.epochs))
+    LOG.info('resize image_width is:%s, image_height is:%s\n' %
+             (args.width, args.height))
     save_path = args.save
     if not os.path.isdir(save_path):
         os.makedirs(save_path)
@@ -44,7 +57,6 @@ def train():
 
     # 数据预处理
     if args.use_aug:
-        print('Use DataAugment')
         data_transforms = {
             'train':
             transforms.Compose([
@@ -118,47 +130,36 @@ def train():
         'train': len(train_loader.dataset),
         'val': len(val_loader.dataset)
     }
-
     # 加载模型
     model = LaneNet(arch=args.model_type, backend=args.backend)
     model.to(DEVICE)
     # 设置优化器
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
     print(f"{args.epochs} epochs {len(train_dataset)} training samples\n")
+    LOG.info(f"{args.epochs} epochs {len(train_dataset)} training samples")
 
     # 设置scheduler. TODO:test scheduler
     # scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer,milestones = [30,80], gamma=0.5, last_epoch=-1)
     # scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=5, verbose=True,
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=15, eta_min=1e-4)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
+        optimizer, T_0=15, eta_min=1e-4)
     # 开始训练
-    model, log = train_model(model,
-                             optimizer,
-                             scheduler=scheduler,
-                             dataloaders=dataloaders,
-                             dataset_sizes=dataset_sizes,
-                             device=DEVICE,
-                             loss_type=args.loss_type,
-                             num_epochs=args.epochs,
-                             checkpoint=args.checkpoint)
-
-    # 日志
-    df = pd.DataFrame({'epoch': [], 'training_loss': [], 'val_loss': []})
-    df['epoch'] = log['epoch']
-    df['training_loss'] = log['training_loss']
-    df['val_loss'] = log['val_loss']
-
-    train_log_save_filename = os.path.join(save_path, 'training_log.csv')
-    df.to_csv(train_log_save_filename,
-              columns=['epoch', 'training_loss', 'val_loss'],
-              header=True,
-              index=False,
-              encoding='utf-8')
-    print("training log is saved: {}".format(train_log_save_filename))
+    model = train_model(model,
+                        optimizer,
+                        scheduler=scheduler,
+                        dataloaders=dataloaders,
+                        dataset_sizes=dataset_sizes,
+                        device=DEVICE,
+                        loss_type=args.loss_type,
+                        num_epochs=args.epochs,
+                        checkpoint=args.checkpoint)
 
     # 保存模型 训练完保存模型。
     model_save_filename = os.path.join(save_path, 'best_model.pth')
     torch.save(model.state_dict(), model_save_filename)
     print("model is saved: {}".format(model_save_filename))
+    LOG.info('Complete training process good luck!!')
+    return
 
 
 if __name__ == '__main__':

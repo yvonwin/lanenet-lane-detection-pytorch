@@ -7,8 +7,9 @@ import time
 import copy
 import os
 from model.lanenet.loss import DiscriminativeLoss, FocalLoss
+import  loguru
 
-
+LOG = loguru.logger
 def compute_loss(net_output,
                  binary_label,
                  instance_label,
@@ -52,7 +53,6 @@ def train_model(
         num_epochs=25,
         checkpoint=False):
     since = time.time()
-    training_log = {'epoch': [], 'training_loss': [], 'val_loss': []}
     best_loss = float("inf")
     start_epoch = 0
     #  加载断点
@@ -62,10 +62,11 @@ def train_model(
         optimizer.load_state_dict(checkpoint['optimizer'])  # 加载优化器参数
         start_epoch = checkpoint['epoch']  # 设置开始的epoch 通过它来保证训练时epoch不会变化
         print('sucess load checkpoint')
+        LOG.info('sucess load checkpoint')
     best_model_wts = copy.deepcopy(model.state_dict())
-
+    # 打印学习率
+    print('这一阶段学习率为:', optimizer.param_groups[0]['lr'])
     for epoch in range(start_epoch, num_epochs):
-        training_log['epoch'].append(epoch)
         print('Epoch {}/{}'.format(epoch, num_epochs - 1))
         print('-' * 10)
 
@@ -108,20 +109,25 @@ def train_model(
             if phase == 'train':
                 if scheduler != None:
                     scheduler.step()
-            # 打印学习率
-            print('这一阶段学习率为:', optimizer.param_groups[0]['lr'])
+
             epoch_loss = running_loss / dataset_sizes[phase]
             binary_loss = running_loss_b / dataset_sizes[phase]
             instance_loss = running_loss_i / dataset_sizes[phase]
             print(
                 '{} Total Loss: {:.4f} Binary Loss: {:.4f} Instance Loss: {:.4f}'
                 .format(phase, epoch_loss, binary_loss, instance_loss))
+            # add log
+            log_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+            LOG.info('=> Epoch: {:d} Time: {:s} {} Total Loss: {:.4f} Binary Loss: {:.4f} Instance Loss: {:.4f}'.format(
+                        epoch,
+                        log_time,
+                        phase,
+                        epoch_loss,
+                        binary_loss,
+                        instance_loss))
 
             # deep copy the model
-            if phase == 'train':
-                training_log['training_loss'].append(epoch_loss)
             if phase == 'val':
-                training_log['val_loss'].append(epoch_loss)
                 if epoch_loss < best_loss:
                     best_loss = epoch_loss
                     best_model_wts = copy.deepcopy(model.state_dict())
@@ -137,18 +143,20 @@ def train_model(
             if not os.path.exists("./log/checkpoints"):
                 os.makedirs('./log/checkpoints')
             torch.save(checkpoint,
-                       './log/checkpoints/ckpt_best_%s.pth' % (str(epoch)))
+                       './log/checkpoints/ckpt_best_%s.pth' % (str(epoch)))     
 
     time_elapsed = time.time() - since
     print('Training complete in {:.0f}m {:.0f}s'.format(
         time_elapsed // 60, time_elapsed % 60))
     print('Best val_loss: {:4f}'.format(best_loss))
-    training_log['training_loss'] = np.array(training_log['training_loss'])
-    training_log['val_loss'] = np.array(training_log['val_loss'])
+    LOG.info('Training complete in {:.0f}m {:.0f}s'.format(
+        time_elapsed // 60, time_elapsed % 60))
+    LOG.info('Best val_loss: {:4f}'.format(best_loss))
 
     # load best model weights
     model.load_state_dict(best_model_wts)
-    return model, training_log
+    LOG.info('Best model weights saved')
+    return model
 
 
 def trans_to_cuda(variable):
