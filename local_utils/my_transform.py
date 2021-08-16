@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-08-03 14:14:42
-LastEditTime: 2021-08-12 16:29:32
+LastEditTime: 2021-08-14 00:21:54
 LastEditors: Please set LastEditors
 Description: 生成tusimple格式的标注文件
 FilePath: /labelme处理/convert1.py
@@ -170,6 +170,7 @@ def gen_train_val_sample(src_dir, save_path, singe=0):
     src_list = os.listdir(src_dir)
     if singe:
         src_list = glob.glob(src_dir + "/*_json")
+        print('获取单个文件夹')
     else:
         src_list = glob.glob(src_dir + "/*/*_json")
     print(len(src_list))
@@ -180,7 +181,8 @@ def gen_train_val_sample(src_dir, save_path, singe=0):
     os.makedirs(save_path, exist_ok=True)
     with open("{:s}/train.txt".format(save_path), 'w+') as file:
         for annotations_dir in trian_data:
-            json_dir = os.path.join(src_dir, annotations_dir)
+            json_dir = annotations_dir
+            print(json_dir)
             if os.path.isdir(json_dir):
                 train_rows = moveImageTodir(json_dir, save_path,
                                             str(count).zfill(4))
@@ -189,7 +191,7 @@ def gen_train_val_sample(src_dir, save_path, singe=0):
 
     with open("{:s}/val.txt".format(save_path), 'w+') as file:
         for annotations_dir in val_data:
-            json_dir = os.path.join(src_dir, annotations_dir)
+            json_dir = annotations_dir
             if os.path.isdir(json_dir):
                 train_rows = moveImageTodir(json_dir, save_path,
                                             str(count).zfill(4))
@@ -198,7 +200,7 @@ def gen_train_val_sample(src_dir, save_path, singe=0):
 
     with open("{:s}/test.txt".format(save_path), 'w+') as file:
         for annotations_dir in test_data:
-            json_dir = os.path.join(src_dir, annotations_dir)
+            json_dir = annotations_dir
             if os.path.isdir(json_dir):
                 train_rows = moveImageTodir(json_dir, save_path,
                                             str(count).zfill(4))

@@ -1,16 +1,15 @@
 '''
 Author: your name
 Date: 2021-08-05 17:41:49
-LastEditTime: 2021-08-13 09:22:46
+LastEditTime: 2021-08-13 16:05:32
 LastEditors: Please set LastEditors
 Description: 批量测试文件夹中的图片
 FilePath: /lanenet-lane-detection-pytorch/test_lanenet.py
 '''
-import argparse
+# import argparse
 import os
 import os.path as ops
-import time
-
+# import time
 import cv2
 import torch
 from model.lanenet.LaneNet import LaneNet
@@ -60,7 +59,7 @@ def test_lanenet():
     model_path = args.model
     model = LaneNet(arch=args.model_type, backend=args.backend)
     if DEVICE == 'cuda:0':
-        state_dict = torch.load(model_path)  #  默认保存的模型是gpu
+        state_dict = torch.load(model_path)  # 默认保存的模型是gpu
     else:
         state_dict = torch.load(model_path,
                                 map_location=torch.device('cpu'))  # cpu推理
@@ -78,11 +77,10 @@ def test_lanenet():
         input = input.resize((resize_width, resize_height))
         input = np.array(input)
 
-        # TODO output压到一维聚类
         instance_pred = torch.squeeze(
-            outputs['instance_seg_logits'].detach().to('cpu')).numpy() * 255
+            outputs['instance_seg_logits'].detach().to('cpu')).numpy()
         binary_pred = torch.squeeze(
-            outputs['binary_seg_pred']).to('cpu').numpy() * 255
+            outputs['binary_seg_pred']).to('cpu').numpy()
 
         # postprocess
         seg_img = np.zeros_like(input)
@@ -110,9 +108,9 @@ def test_lanenet():
         cv2.imwrite(os.path.join(save_dir, 'result_' + img_name), img)
 
         cv2.imwrite(os.path.join(save_dir, 'instance_output' + img_name),
-                    instance_pred.transpose((1, 2, 0)))
+                    instance_pred.transpose((1, 2, 0))*255)
         cv2.imwrite(os.path.join(save_dir, 'binary_output' + img_name),
-                    binary_pred)
+                    binary_pred*255)
 
 
 if __name__ == '__main__':

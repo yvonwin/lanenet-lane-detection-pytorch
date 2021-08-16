@@ -1,26 +1,26 @@
 '''
 Author: your name
 Date: 2021-08-03 16:30:37
-LastEditTime: 2021-08-12 11:21:28
+LastEditTime: 2021-08-13 16:00:42
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
-FilePath: /undefined/Users/wk/Desktop/Mac_Workspaces/lanenet-lane-detection-pytorch/test.py
+FilePath: ~/Mac_Workspaces/lanenet-lane-detection-pytorch/test.py
 '''
-import time
+# import time
 import os
-import sys
+# import sys
 
 import torch
-from dataloader.transformers import Rescale
+# from dataloader.transformers import Rescale
 from model.lanenet.LaneNet import LaneNet
-from torch.utils.data import DataLoader
-from torch.autograd import Variable
+# from torch.utils.data import DataLoader
+# from torch.autograd import Variable
 from torchvision import transforms
 from model.utils.cli_helper_test import parse_args
 from model.utils.postprocess import embedding_post_process
 import numpy as np
 from PIL import Image
-import pandas as pd
+# import pandas as pd
 import cv2
 
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -33,7 +33,7 @@ def load_test_data(img_path, transform):
 
 
 def test():
-    if os.path.exists('test_output') == False:
+    if not os.path.exists('test_output'):
         os.mkdir('test_output')
     args = parse_args()
     img_path = args.img
@@ -49,7 +49,7 @@ def test():
     model_path = args.model
     model = LaneNet(arch=args.model_type, backend=args.backend)
     if DEVICE == 'cuda:0':
-        state_dict = torch.load(model_path)  #  默认保存的模型是gpu
+        state_dict = torch.load(model_path)  # 默认保存的模型是gpu
     else:
         state_dict = torch.load(model_path,
                                 map_location=torch.device('cpu'))  # cpu推理
@@ -64,13 +64,14 @@ def test():
     input = Image.open(img_path)
     input = input.resize((resize_width, resize_height))
     input = np.array(input)
-     
-    # TODO output压到一维聚类
-    instance_pred = torch.squeeze(
-        outputs['instance_seg_logits'].detach().to('cpu')).numpy() * 255
-    binary_pred = torch.squeeze(
-        outputs['binary_seg_pred']).to('cpu').numpy() * 255
 
+    # get instance and binary
+    instance_pred = torch.squeeze(
+        # outputs['instance_seg_logits'].detach().to('cpu')).numpy() * 255
+        outputs['instance_seg_logits'].detach().to('cpu')).numpy()
+    binary_pred = torch.squeeze(
+        # outputs['binary_seg_pred']).to('cpu').numpy() * 255
+        outputs['binary_seg_pred']).to('cpu').numpy()
     # postprocess
     seg_img = np.zeros_like(input)
     embedding = instance_pred.transpose((1, 2, 0))
@@ -95,9 +96,14 @@ def test():
     cv2.imwrite('./test_output/demo_result.png', img)
 
     cv2.imwrite(os.path.join('test_output', 'input.jpg'), input)
+    # cv2.imwrite(os.path.join('test_output', 'instance_output.jpg'),
+    #             instance_pred.transpose((1, 2, 0)))
     cv2.imwrite(os.path.join('test_output', 'instance_output.jpg'),
-                instance_pred.transpose((1, 2, 0)))
-    cv2.imwrite(os.path.join('test_output', 'binary_output.jpg'), binary_pred)
+                instance_pred.transpose((1, 2, 0)) * 255)
+    # cv2.imwrite(os.path.join('test_output', 'binary_output.jpg'),
+    #  binary_pred)
+    cv2.imwrite(os.path.join('test_output', 'binary_output.jpg'),
+                binary_pred * 255)
 
 
 if __name__ == "__main__":
