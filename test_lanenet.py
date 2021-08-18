@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-08-05 17:41:49
-LastEditTime: 2021-08-17 18:21:35
+LastEditTime: 2021-08-18 16:33:32
 LastEditors: Please set LastEditors
 Description: 批量测试文件夹中的图片
 FilePath: /lanenet-lane-detection-pytorch/test_lanenet.py
@@ -21,7 +21,6 @@ import numpy as np
 from PIL import Image
 import glob
 from model.utils import lanenet_cluster, lanenet_postprocess
-
 
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -88,19 +87,36 @@ def test_lanenet():
         # postprocess
         instance_pred = instance_pred.transpose(1, 2, 0)
         cluster = lanenet_cluster.LaneNetCluster()
-        #postprocessor = lanenet_postprocess.LaneNetPoseProcessor()
-        mask_image, _, _, _ = cluster.get_lane_mask(instance_seg_ret=instance_pred,
-                                                    binary_seg_ret=binary_pred,
-                                                    gt_image=input)
-        
-        cv2.imwrite('./test_output/mask_result.png', mask_image)
+        postprocessor = lanenet_postprocess.LaneNetPoseProcessor()
+        mask_image, _, _, _ = cluster.get_lane_mask(
+            instance_seg_ret=instance_pred,
+            binary_seg_ret=binary_pred,
+            gt_image=input)
+
+        # cv2.imwrite('./test_output/mask_result.png', mask_image)
         # 写结果
+        print(instance_pred.shape)
+        print(binary_pred.shape)
+        image = np.expand_dims(binary_pred, axis=2)
+        image = np.concatenate((image, image, image), axis=-1)
+
+        out_all = np.vstack([
+            np.hstack([
+                cv2.cvtColor(input, cv2.COLOR_RGB2BGR), mask_image,
+            ]),
+            np.hstack([
+                instance_pred*255,
+                image*255
+            ])
+        ])
+
         cv2.imwrite(os.path.join(save_dir, 'result_' + img_name), mask_image)
 
         cv2.imwrite(os.path.join(save_dir, 'instance_output' + img_name),
-                    instance_pred*255)
+                    instance_pred * 255)
         cv2.imwrite(os.path.join(save_dir, 'binary_output' + img_name),
-                    binary_pred*255)
+                    binary_pred * 255)
+        cv2.imwrite(os.path.join(save_dir, 'out_all' + img_name), out_all)
 
 
 if __name__ == '__main__':
