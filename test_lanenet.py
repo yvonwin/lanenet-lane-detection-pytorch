@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-08-05 17:41:49
-LastEditTime: 2021-08-16 18:11:32
+LastEditTime: 2021-08-17 18:21:35
 LastEditors: Please set LastEditors
 Description: 批量测试文件夹中的图片
 FilePath: /lanenet-lane-detection-pytorch/test_lanenet.py
@@ -11,6 +11,7 @@ import os
 import os.path as ops
 # import time
 import cv2
+from sklearn import cluster
 import torch
 from model.lanenet.LaneNet import LaneNet
 from torchvision import transforms
@@ -19,6 +20,8 @@ from model.utils.postprocess import embedding_post_process
 import numpy as np
 from PIL import Image
 import glob
+from model.utils import lanenet_cluster, lanenet_postprocess
+
 
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -83,32 +86,19 @@ def test_lanenet():
             outputs['binary_seg_pred']).to('cpu').numpy()
 
         # postprocess
-        seg_img = np.zeros_like(input)
-        embedding = instance_pred.transpose((1, 2, 0))
-        bandwidth = 1.5
-        # use meanshift
-        lane_seg_img = embedding_post_process(embedding, binary_pred,
-                                              bandwidth, 2)
-        #  print(lane_seg_img)
-        #  print(lane_seg_img.shape)
-        color = np.array(
-            [[255, 255, 0], [0, 255, 0], [0, 0, 255], [0, 255, 255]],
-            dtype='uint8')
-
-        for i, lane_idx in enumerate(np.unique(lane_seg_img)):
-            if lane_idx == 0:
-                continue
-            seg_img[lane_seg_img == lane_idx] = color[i - 1]
-        img = cv2.addWeighted(src1=seg_img,
-                              alpha=0.8,
-                              src2=input,
-                              beta=1,
-                              gamma=0.)
-        #  print(input.shape)
-        cv2.imwrite(os.path.join(save_dir, 'result_' + img_name), img)
+        instance_pred = instance_pred.transpose(1, 2, 0)
+        cluster = lanenet_cluster.LaneNetCluster()
+        #postprocessor = lanenet_postprocess.LaneNetPoseProcessor()
+        mask_image, _, _, _ = cluster.get_lane_mask(instance_seg_ret=instance_pred,
+                                                    binary_seg_ret=binary_pred,
+                                                    gt_image=input)
+        
+        cv2.imwrite('./test_output/mask_result.png', mask_image)
+        # 写结果
+        cv2.imwrite(os.path.join(save_dir, 'result_' + img_name), mask_image)
 
         cv2.imwrite(os.path.join(save_dir, 'instance_output' + img_name),
-                    instance_pred.transpose((1, 2, 0))*255)
+                    instance_pred*255)
         cv2.imwrite(os.path.join(save_dir, 'binary_output' + img_name),
                     binary_pred*255)
 

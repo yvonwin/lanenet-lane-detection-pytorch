@@ -1,13 +1,14 @@
 '''
 Author: your name
 Date: 2021-08-03 16:30:37
-LastEditTime: 2021-08-16 18:12:00
+LastEditTime: 2021-08-17 18:14:06
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: ~/Mac_Workspaces/lanenet-lane-detection-pytorch/test.py
 '''
 # import time
 import os
+from sklearn import cluster
 # import sys
 
 import torch
@@ -16,12 +17,14 @@ from model.lanenet.LaneNet import LaneNet
 # from torch.utils.data import DataLoader
 # from torch.autograd import Variable
 from torchvision import transforms
+from model.utils import postprocess
 from model.utils.cli_helper_test import parse_args
 from model.utils.postprocess import embedding_post_process
 import numpy as np
 from PIL import Image
 # import pandas as pd
 import cv2
+from model.utils import lanenet_cluster, lanenet_postprocess
 
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -72,34 +75,23 @@ def test():
     binary_pred = torch.squeeze(
         # outputs['binary_seg_pred']).to('cpu').numpy() * 255
         outputs['binary_seg_pred']).to('cpu').numpy()
+
+
+
     # postprocess
-    seg_img = np.zeros_like(input)
-    embedding = instance_pred.transpose((1, 2, 0))
-    bandwidth = 1.5
-    # use meanshift
-    lane_seg_img = embedding_post_process(embedding, binary_pred, bandwidth, 2)
-    #  print(lane_seg_img)
-    #  print(lane_seg_img.shape)
-    color = np.array([[255, 255, 0], [0, 255, 0], [0, 0, 255], [0, 255, 255]],
-                     dtype='uint8')
-
-    for i, lane_idx in enumerate(np.unique(lane_seg_img)):
-        if lane_idx == 0:
-            continue
-        seg_img[lane_seg_img == lane_idx] = color[i - 1]
-    img = cv2.addWeighted(src1=seg_img,
-                          alpha=0.8,
-                          src2=input,
-                          beta=1,
-                          gamma=0.)
-    #  print(input.shape)
-    cv2.imwrite('./test_output/demo_result.png', img)
-
+    instance_pred = instance_pred.transpose(1, 2, 0)
+    cluster = lanenet_cluster.LaneNetCluster()
+    #postprocessor = lanenet_postprocess.LaneNetPoseProcessor()
+    mask_image, _, _, _ = cluster.get_lane_mask(instance_seg_ret=instance_pred,
+                                                binary_seg_ret=binary_pred,
+                                                gt_image=input)
+                                                
+    cv2.imwrite('./test_output/mask_result.png', mask_image)
     cv2.imwrite(os.path.join('test_output', 'input.jpg'), input)
     # cv2.imwrite(os.path.join('test_output', 'instance_output.jpg'),
     #             instance_pred.transpose((1, 2, 0)))
     cv2.imwrite(os.path.join('test_output', 'instance_output.jpg'),
-                instance_pred.transpose((1, 2, 0)) * 255)
+                instance_pred * 255)
     # cv2.imwrite(os.path.join('test_output', 'binary_output.jpg'),
     #  binary_pred)
     cv2.imwrite(os.path.join('test_output', 'binary_output.jpg'),
