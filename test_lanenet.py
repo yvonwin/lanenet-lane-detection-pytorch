@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-08-05 17:41:49
-LastEditTime: 2021-08-18 16:33:32
+LastEditTime: 2021-08-18 17:44:49
 LastEditors: Please set LastEditors
 Description: 批量测试文件夹中的图片
 FilePath: /lanenet-lane-detection-pytorch/test_lanenet.py
@@ -109,7 +109,7 @@ def test_lanenet():
                 image*255
             ])
         ])
-
+        cv2.imwrite(os.path.join(save_dir, 'input_'+img_name), input)    
         cv2.imwrite(os.path.join(save_dir, 'result_' + img_name), mask_image)
 
         cv2.imwrite(os.path.join(save_dir, 'instance_output' + img_name),
