@@ -57,6 +57,20 @@ class TusimpleSet(Dataset):
         label_instance_img = cv2.imread(self._gt_label_instance_list[idx], cv2.IMREAD_UNCHANGED)
         label_img = cv2.imread(self._gt_label_binary_list[idx], cv2.IMREAD_COLOR)
 
+        # crop img. crop is a tmp variable
+        crop = 0
+        if crop :
+            crop_height = 300
+            print('crop height size: %s'%str(crop_height))
+            img = img.crop((0, crop_height, label_img.shape[1], label_img.shape[0]))
+            label_instance_img = label_instance_img[crop_height:]
+            label_img = label_img[crop_height:]
+            # import matplotlib.pyplot as plt 
+            # plt.imshow(img)
+            # plt.show()
+            # cv2.imshow('label_instance_img', label_instance_img)
+            # cv2.waitKey(1)
+
         # optional transformations
         if self.transform:
             img = self.transform(img)
