@@ -86,11 +86,10 @@ class LaneNetPoseProcessor(object):
         return morphological_ret
 
 
-if __name__ == '__main__':
+def main():
     processor = LaneNetPoseProcessor()
-
-    image = cv2.imread('/Users/wk/Desktop/Mac_Workspaces/lanenet-lane-detection-pytorch/test_output/binary_output.jpg', cv2.IMREAD_GRAYSCALE)
-
+    image = cv2.imread('/Users/wk/Desktop/Mac_Workspaces/lanenet-lane-detection-pytorch/test_output1/binary_output0071.png', cv2.IMREAD_GRAYSCALE)
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     postprocess_ret = processor.postprocess(image)
 
     plt.figure('src')
@@ -98,3 +97,7 @@ if __name__ == '__main__':
     plt.figure('post')
     plt.imshow(postprocess_ret)
     plt.show()
+
+
+if __name__ == '__main__':
+    main()

@@ -78,23 +78,27 @@ class LaneNetCluster(object):
         # db = DBSCAN(eps=0.7, min_samples=200).fit(prediction)
         log.info('开始dbscan聚类')
         tic = time.time()
-        db = DBSCAN(eps=0.35, min_samples=500)
+        db = DBSCAN(eps=0.35, min_samples=200)
         try:
-            features = StandardScaler().fit_transform(prediction)
-            db.fit(features)
+            #features = StandardScaler().fit_transform(prediction)
+            #db.fit(features)
+            db.fit(prediction)
         except Exception as err:
             log.error(err)
-        db_labels = db.labels_
-        unique_labels = np.unique(db_labels)
-        unique_labels = [tmp for tmp in unique_labels if tmp != -1]
-        log.info('聚类簇个数为: {:d}'.format(len(unique_labels)))
+            log.info('这张图片异常，可能是曝光过度？')
+            return 0, [], []
+        if db:
+            db_labels = db.labels_
+            unique_labels = np.unique(db_labels)
+            unique_labels = [tmp for tmp in unique_labels if tmp != -1]
+            log.info('聚类簇个数为: {:d}'.format(len(unique_labels)))
 
-        num_clusters = len(unique_labels)
-        cluster_centers = db.components_
+            num_clusters = len(unique_labels)
+            cluster_centers = db.components_
 
-        log.info('dbscan耗时: {:.5f}s'.format(time.time() - tic))
+            log.info('dbscan耗时: {:.5f}s'.format(time.time() - tic))
 
-        return num_clusters, db_labels, cluster_centers
+            return num_clusters, db_labels, cluster_centers
 
     @staticmethod
     def _get_lane_area(binary_seg_ret, instance_seg_ret):
@@ -104,7 +108,7 @@ class LaneNetCluster(object):
         :param instance_seg_ret:
         :return:
         """
-        print(binary_seg_ret.shape, instance_seg_ret.shape)
+        # print(binary_seg_ret.shape, instance_seg_ret.shape)
         idx = np.where(binary_seg_ret == 1)
 
         lane_embedding_feats = []
@@ -174,7 +178,6 @@ class LaneNetCluster(object):
         num_clusters, labels, cluster_centers = self._cluster_v2(lane_embedding_feats)
 
         # 聚类簇超过八个则选择其中类内样本最多的八个聚类簇保留下来
-        num_clusters = 2
         if num_clusters > 8:
             cluster_sample_nums = []
             for i in range(num_clusters):
@@ -194,7 +197,6 @@ class LaneNetCluster(object):
                      int(self._color_map[index][2]))
             coord = np.array(coord)
             mask_image[coord[:,0], coord[:,1], :] = color
-
         return mask_image, lane_coordinate, cluster_index, labels
 
 

@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-08-05 17:41:49
-LastEditTime: 2021-08-18 17:44:49
+LastEditTime: 2021-08-19 09:49:11
 LastEditors: Please set LastEditors
 Description: 批量测试文件夹中的图片
 FilePath: /lanenet-lane-detection-pytorch/test_lanenet.py
@@ -11,12 +11,12 @@ import os
 import os.path as ops
 # import time
 import cv2
-from sklearn import cluster
+# from sklearn import cluster
 import torch
 from model.lanenet.LaneNet import LaneNet
 from torchvision import transforms
 from model.utils.cli_helper_test import parse_args
-from model.utils.postprocess import embedding_post_process
+# from model.utils.postprocess import embedding_post_process
 import numpy as np
 from PIL import Image
 import glob
@@ -87,29 +87,28 @@ def test_lanenet():
         # postprocess
         instance_pred = instance_pred.transpose(1, 2, 0)
         cluster = lanenet_cluster.LaneNetCluster()
+        # 删除一些比较小的联通区域
         postprocessor = lanenet_postprocess.LaneNetPoseProcessor()
+        binary_pred = postprocessor.postprocess(binary_pred)
+        print('*****fuck! img_name is: ', img_name)
+        # TODO  曝光增强过滤
         mask_image, _, _, _ = cluster.get_lane_mask(
             instance_seg_ret=instance_pred,
             binary_seg_ret=binary_pred,
             gt_image=input)
 
-        # cv2.imwrite('./test_output/mask_result.png', mask_image)
         # 写结果
-        print(instance_pred.shape)
-        print(binary_pred.shape)
         image = np.expand_dims(binary_pred, axis=2)
         image = np.concatenate((image, image, image), axis=-1)
 
         out_all = np.vstack([
             np.hstack([
-                cv2.cvtColor(input, cv2.COLOR_RGB2BGR), mask_image,
+                cv2.cvtColor(input, cv2.COLOR_RGB2BGR),
+                mask_image,
             ]),
-            np.hstack([
-                instance_pred*255,
-                image*255
-            ])
+            np.hstack([instance_pred * 255, image * 255])
         ])
-        cv2.imwrite(os.path.join(save_dir, 'input_'+img_name), input)    
+        cv2.imwrite(os.path.join(save_dir, 'input_' + img_name), input)
         cv2.imwrite(os.path.join(save_dir, 'result_' + img_name), mask_image)
 
         cv2.imwrite(os.path.join(save_dir, 'instance_output' + img_name),
