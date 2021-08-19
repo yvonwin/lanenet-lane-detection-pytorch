@@ -80,6 +80,7 @@ class LaneNetCluster(object):
         tic = time.time()
         db = DBSCAN(eps=0.35, min_samples=200)
         try:
+            # 去除均值并缩放到单位方差来标准化特征
             #features = StandardScaler().fit_transform(prediction)
             #db.fit(features)
             db.fit(prediction)
