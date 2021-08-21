@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-08-05 17:41:49
-LastEditTime: 2021-08-19 12:11:10
+LastEditTime: 2021-08-20 16:46:07
 LastEditors: Please set LastEditors
 Description: 批量测试文件夹中的图片
 FilePath: /lanenet-lane-detection-pytorch/test_lanenet.py
@@ -84,37 +84,37 @@ def test_lanenet():
         binary_pred = torch.squeeze(
             outputs['binary_seg_pred']).to('cpu').numpy()
 
-        # postprocess
+        # 开始后处理
         instance_pred = instance_pred.transpose(1, 2, 0)
         cluster = lanenet_cluster.LaneNetCluster()
         # 删除一些比较小的联通区域
         postprocessor = lanenet_postprocess.LaneNetPoseProcessor()
         binary_pred = postprocessor.postprocess(binary_pred)
         print('*****fuck! img_name is: ', img_name)
-        # TODO  曝光增强过滤
+        # TODO  曝光增强过滤 Done 已经做了，在聚类阶段异常抛出
         mask_image, _, _, _ = cluster.get_lane_mask(
             instance_seg_ret=instance_pred,
             binary_seg_ret=binary_pred,
             gt_image=input)
 
-        # 写结果
-        image = np.expand_dims(binary_pred, axis=2)
-        image = np.concatenate((image, image, image), axis=-1)
-
+        # 拓展binary_pred通道 方便可视化
+        bin_image = np.expand_dims(binary_pred, axis=2)
+        bin_image = np.concatenate((bin_image, bin_image, bin_image), axis=-1)
+        # 结果可视化
         out_all = np.vstack([
             np.hstack([
                 cv2.cvtColor(input, cv2.COLOR_RGB2BGR),
-                mask_image,
+                cv2.cvtColor(mask_image, cv2.COLOR_RGB2BGR),
             ]),
-            np.hstack([instance_pred * 255, image * 255])
+            np.hstack([instance_pred * 255, bin_image * 255])
         ])
-        cv2.imwrite(os.path.join(save_dir, 'input_' + img_name), input)
-        cv2.imwrite(os.path.join(save_dir, 'result_' + img_name), mask_image)
+        # cv2.imwrite(os.path.join(save_dir, 'input_' + img_name), input)
+        # cv2.imwrite(os.path.join(save_dir, 'result_' + img_name), mask_image)
 
-        cv2.imwrite(os.path.join(save_dir, 'instance_output' + img_name),
-                    instance_pred * 255)
-        cv2.imwrite(os.path.join(save_dir, 'binary_output' + img_name),
-                    binary_pred * 255)
+        # cv2.imwrite(os.path.join(save_dir, 'instance_output' + img_name),
+        #            instance_pred * 255)
+        # cv2.imwrite(os.path.join(save_dir, 'binary_output' + img_name),
+        #            binary_pred * 255)
         cv2.imwrite(os.path.join(save_dir, 'out_all' + img_name), out_all)
 
 

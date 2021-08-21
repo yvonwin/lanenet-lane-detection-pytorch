@@ -78,6 +78,8 @@ class LaneNetCluster(object):
         # db = DBSCAN(eps=0.7, min_samples=200).fit(prediction)
         log.info('开始dbscan聚类')
         tic = time.time()
+        # 由于存在细线问题（标注数据导致）设置min_Samples为20
+        # db = DBSCAN(eps=0.35, min_samples=20)
         db = DBSCAN(eps=0.35, min_samples=200)
         try:
             # 去除均值并缩放到单位方差来标准化特征
@@ -205,8 +207,6 @@ if __name__ == '__main__':
     binary_seg_image = cv2.imread('/Users/wk/Desktop/Mac_Workspaces/lanenet-lane-detection-pytorch/test_output/binary_output.jpg', cv2.IMREAD_GRAYSCALE)
     binary_seg_image[np.where(binary_seg_image == 255)] = 1
     instance_seg_image = cv2.imread('/Users/wk/Desktop/Mac_Workspaces/lanenet-lane-detection-pytorch/test_output/instance_output.jpg', cv2.IMREAD_UNCHANGED)
-    print('instance_seg_image shape:',instance_seg_image.shape)
-    print('binary_seg_image shape:',binary_seg_image.shape)
     gt_image = cv2.imread('/Users/wk/Desktop/Mac_Workspaces/lanenet-lane-detection-pytorch/test_output/input.jpg', cv2.IMREAD_UNCHANGED)
     ele_mex = np.max(instance_seg_image, axis=(0, 1))
     for i in range(3):

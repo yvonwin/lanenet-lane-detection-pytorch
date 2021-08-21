@@ -1,3 +1,4 @@
+# from numpy.lib.function_base import interp
 import torch
 import torch.nn as nn
 # import torch.optim as optim
@@ -97,6 +98,7 @@ def train_model(
                 # track history if only in train
                 with torch.set_grad_enabled(phase == 'train'):
                     outputs = model(inputs)
+                    # print(outputs['binary_seg_logits'].shape) # 输入276这里shape变为了272 为什么？因为Enet的输入得是16的倍数
                     loss = compute_loss(outputs, binarys, instances, loss_type)
 
                     # backward + optimize only if in training phase

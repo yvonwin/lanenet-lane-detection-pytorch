@@ -1,3 +1,11 @@
+'''
+Author: your name
+Date: 2021-08-19 15:29:32
+LastEditTime: 2021-08-21 17:16:13
+LastEditors: Please set LastEditors
+Description: In User Settings Edit
+FilePath: /lanenet-lane-detection-pytorch/dataloader/data_loaders.py
+'''
 # coding: utf-8
 '''
 Code is referred from https://github.com/klintan/pytorch-lanenet
@@ -59,12 +67,15 @@ class TusimpleSet(Dataset):
 
         # crop img. crop is a tmp variable
         crop = 0
-        if crop :
-            crop_height = 300
-            print('crop height size: %s'%str(crop_height))
+        if crop:
+            crop_height = 304
+            # print('crop height size: %s'%str(crop_height))
             img = img.crop((0, crop_height, label_img.shape[1], label_img.shape[0]))
             label_instance_img = label_instance_img[crop_height:]
             label_img = label_img[crop_height:]
+            # print(label_img.shape[1], label_img.shape[0])
+            # print(img.size)
+            # print(label_instance_img.shape[1], label_instance_img.shape[0])
             # import matplotlib.pyplot as plt 
             # plt.imshow(img)
             # plt.show()

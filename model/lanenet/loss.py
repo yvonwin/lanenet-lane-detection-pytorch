@@ -3,20 +3,25 @@
 This is the implementation of following paper:
 https://arxiv.org/pdf/1802.05591.pdf
 """
-
 from torch.nn.modules.loss import _Loss
-from torch.autograd import Variable
+# from torch.autograd import Variable
 import torch
 import torch.nn as nn
 from torch.functional import F
 
 DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
+
 class FocalLoss(nn.Module):
     '''
     Only consider two class now: foreground, background.
     '''
-    def __init__(self, gamma=2, alpha=[0.5, 0.5], n_class=2, reduction='mean', device = DEVICE):
+    def __init__(self,
+                 gamma=2,
+                 alpha=[0.5, 0.5],
+                 n_class=2,
+                 reduction='mean',
+                 device=DEVICE):
         super().__init__()
         self.gamma = gamma
         self.alpha = alpha
@@ -26,24 +31,40 @@ class FocalLoss(nn.Module):
 
     def forward(self, input, target):
         pt = F.softmax(input, dim=1)
-        pt = pt.clamp(min=0.000001,max=0.999999)
-        target_onehot = torch.zeros((target.size(0), self.n_class, target.size(1),target.size(2))).to(self.device)
+        pt = pt.clamp(min=0.000001, max=0.999999)
+        target_onehot = torch.zeros(
+            (target.size(0), self.n_class, target.size(1),
+             target.size(2))).to(self.device)
+        # print(target_onehot.size()) # torch.Size([4, 2, 276, 704])
         loss = 0
         for i in range(self.n_class):
-            target_onehot[:,i,...][target == i] = 1
+            target_onehot[:, i, ...][target == i] = 1
         for i in range(self.n_class):
-            loss -= self.alpha[i] * (1 - pt[:,i,...]) ** self.gamma * target_onehot[:,i,...] * torch.log(pt[:,i,...])
+            # print(pt[:,i,...].size()) # torch.Size([4, 272, 704])
+            # print(target_onehot[:,i,...].size()) # torch.Size([4, 276, 704])
+            # print(torch.log(pt[:,i,...]).size()) # torch.Size([4, 272, 704])
+            loss -= self.alpha[i] * (
+                1 - pt[:, i, ...]
+            )**self.gamma * target_onehot[:, i, ...] * torch.log(pt[:, i, ...])
 
         if self.reduction == 'mean':
             loss = torch.mean(loss)
         elif self.reduction == 'sum':
             loss = torch.sum(loss)
-            
+
         return loss
 
+
 class DiscriminativeLoss(_Loss):
-    def __init__(self, delta_var=0.5, delta_dist=1.5, norm=2, alpha=1.0, beta=1.0, gamma=0.001,
-                 usegpu=False, size_average=True):
+    def __init__(self,
+                 delta_var=0.5,
+                 delta_dist=1.5,
+                 norm=2,
+                 alpha=1.0,
+                 beta=1.0,
+                 gamma=0.001,
+                 usegpu=False,
+                 size_average=True):
         super(DiscriminativeLoss, self).__init__(reduction='mean')
         self.delta_var = delta_var
         self.delta_dist = delta_dist
@@ -60,12 +81,18 @@ class DiscriminativeLoss(_Loss):
 
     def _discriminative_loss(self, embedding, seg_gt):
         batch_size, embed_dim, H, W = embedding.shape
-        embedding = embedding.reshape(batch_size, embed_dim, H*W)
-        seg_gt = seg_gt.reshape(batch_size, H*W)
+        embedding = embedding.reshape(batch_size, embed_dim, H * W)
+        seg_gt = seg_gt.reshape(batch_size, H * W)
 
-        var_loss = torch.tensor(0, dtype=embedding.dtype, device=embedding.device)
-        dist_loss = torch.tensor(0, dtype=embedding.dtype, device=embedding.device)
-        reg_loss = torch.tensor(0, dtype=embedding.dtype, device=embedding.device)
+        var_loss = torch.tensor(0,
+                                dtype=embedding.dtype,
+                                device=embedding.device)
+        dist_loss = torch.tensor(0,
+                                 dtype=embedding.dtype,
+                                 device=embedding.device)
+        reg_loss = torch.tensor(0,
+                                dtype=embedding.dtype,
+                                device=embedding.device)
 
         for b in range(batch_size):
             embedding_b = embedding[b]  # (embed_dim, H*W)
@@ -87,26 +114,33 @@ class DiscriminativeLoss(_Loss):
 
                 if not seg_mask_i.any():
                     continue
-                
+
                 embedding_i = embedding_b * seg_mask_i
                 mean_i = torch.sum(embedding_i, dim=1) / torch.sum(seg_mask_i)
                 centroid_mean.append(mean_i)
                 # ---------- var_loss -------------
-                var_loss = var_loss + torch.sum(F.relu(
-                    torch.norm(embedding_i[:,seg_mask_i] - mean_i.reshape(embed_dim, 1), dim=0) - self.delta_var) ** 2) / torch.sum(seg_mask_i) / num_lanes
+                var_loss = var_loss + torch.sum(
+                    F.relu(
+                        torch.norm(embedding_i[:, seg_mask_i] -
+                                   mean_i.reshape(embed_dim, 1),
+                                   dim=0) - self.delta_var)**
+                    2) / torch.sum(seg_mask_i) / num_lanes
             centroid_mean = torch.stack(centroid_mean)  # (n_lane, embed_dim)
 
             if num_lanes > 1:
                 centroid_mean1 = centroid_mean.reshape(-1, 1, embed_dim)
                 centroid_mean2 = centroid_mean.reshape(1, -1, embed_dim)
 
-                dist = torch.norm(centroid_mean1 - centroid_mean2, dim=2)   # shape (num_lanes, num_lanes)
-                dist = dist + torch.eye(num_lanes, dtype=dist.dtype,
+                dist = torch.norm(centroid_mean1 - centroid_mean2,
+                                  dim=2)  # shape (num_lanes, num_lanes)
+                dist = dist + torch.eye(num_lanes,
+                                        dtype=dist.dtype,
                                         device=dist.device) * self.delta_dist
 
                 # divided by two for double calculated loss above, for implementation convenience
-                dist_loss = dist_loss + torch.sum(F.relu(-dist + self.delta_dist) ** 2) / (
-                        num_lanes * (num_lanes - 1)) / 2
+                dist_loss = dist_loss + torch.sum(
+                    F.relu(-dist + self.delta_dist)**2) / (num_lanes *
+                                                           (num_lanes - 1)) / 2
 
             # reg_loss is not used in original paper
             # reg_loss = reg_loss + torch.mean(torch.norm(centroid_mean, dim=1))
@@ -116,5 +150,3 @@ class DiscriminativeLoss(_Loss):
         reg_loss = reg_loss / batch_size
 
         return var_loss, dist_loss, reg_loss
-
-

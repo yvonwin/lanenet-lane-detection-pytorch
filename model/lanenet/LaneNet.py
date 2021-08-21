@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-08-03 16:30:37
-LastEditTime: 2021-08-11 16:51:10
+LastEditTime: 2021-08-20 19:21:10
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: /lanenet-lane-detection-pytorch/model/lanenet/LaneNet.py
@@ -24,7 +24,7 @@ DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 
 class LaneNet(nn.Module):
-    def __init__(self, in_ch = 3, arch="ENet", backend='resnet101'):
+    def __init__(self, in_ch=3, arch="ENet", backend='resnet101'):
         super(LaneNet, self).__init__()
         # no of instances for segmentation
         self.no_of_instances = 3  # if you want to output RGB instance map, it should be 3.
@@ -52,11 +52,12 @@ class LaneNet(nn.Module):
             self._encoder.to(DEVICE)
 
             self._decoder_binary = Deeplabv3plus_Decoder(2)
-            self._decoder_instance = Deeplabv3plus_Decoder(self.no_of_instances)
+            self._decoder_instance = Deeplabv3plus_Decoder(
+                self.no_of_instances)
             self._decoder_binary.to(DEVICE)
             self._decoder_instance.to(DEVICE)
         else:
-            raise("Please select right model.")
+            raise ("Please select right model.")
 
         self.relu = nn.ReLU().to(DEVICE)
         self.sigmoid = nn.Sigmoid().to(DEVICE)
@@ -75,9 +76,11 @@ class LaneNet(nn.Module):
             binary = self._decoder_binary(c1, c2)
             instance = self._decoder_instance(c1, c2)
         else:
-            raise("Please select right model.")
+            raise ("Please select right model.")
 
-        binary_seg_ret = torch.argmax(F.softmax(binary, dim=1), dim=1, keepdim=True)
+        binary_seg_ret = torch.argmax(F.softmax(binary, dim=1),
+                                      dim=1,
+                                      keepdim=True)
 
         pix_embedding = self.sigmoid(instance)
 

@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-08-03 16:30:37
-LastEditTime: 2021-08-19 14:20:02
+LastEditTime: 2021-08-20 16:03:19
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: /lanenet-lane-detection-pytorch/train.py
@@ -24,9 +24,9 @@ from model.utils.cli_helper import parse_args
 # from model.eval_function import Eval_Score
 
 # import numpy as np
-import pandas as pd
+# import pandas as pd
 from local_utils import init_logger
-import loguru
+# import loguru
 # import cv2
 
 DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -136,10 +136,9 @@ def train():
     model.to(DEVICE)
     # 设置优化器
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
-    # print(f"{args.epochs} epochs {len(train_dataset)} training samples\n")
     LOG.info(f"{args.epochs} epochs {len(train_dataset)} training samples")
 
-    # 设置scheduler. TODO:test scheduler
+    # 设置scheduler.
     # scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer,milestones = [30,80], gamma=0.5, last_epoch=-1)
     # scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=5, verbose=True,
     scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
@@ -166,7 +165,6 @@ def train():
             args.model_type + '_' + '_best_model.pth')
 
     torch.save(model.state_dict(), model_save_filename)
-    # print("model is saved: {}".format(model_save_filename))
     LOG.info("model is saved: {}".format(model_save_filename))
     LOG.info('Complete training process good luck!!')
     return

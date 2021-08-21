@@ -358,10 +358,11 @@ Test the module type.
 '''
 
 if __name__ == "__main__":
-    input_var = Variable(torch.randn(5, 3, 512, 512))
+    #input_var = Variable(torch.randn(5, 3, 512, 512))
+    input_var = Variable(torch.randn(4, 3, 704, 146)) # 输入需要为16的倍数，否则输出为(4, 3, 704, 144)
     # model = BottleneckModule(128, 64, module_type = 'upsampling', padding = 2, dilated = 2, asymmetric = 5, dropout_prob = 0.1)
-    model = ENet(3, 2)
-    print(model)
+    model = ENet(3, 1)
+    #print(model)
     output = model(input_var)
     # print(output)
     print(output.shape)
