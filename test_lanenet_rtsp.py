@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-07-19 14:26:06
-LastEditTime: 2021-08-23 17:03:18
+LastEditTime: 2021-08-23 18:14:08
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: /refact_7.13/pipeline.py
@@ -150,7 +150,7 @@ def process_video(model, rtsp_url, output_path):
     # 帧处理代码写这
     out_videofile = output_path + '_test.mp4'
     fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
-    output_video = cv2.VideoWriter(out_videofile, fourcc, FPS,
+    # output_video = cv2.VideoWriter(out_videofile, fourcc, FPS,
                                    (int(framewidth), int(frameheight)))
     print('start to write video')
     while rtscap.isStarted():
@@ -161,8 +161,10 @@ def process_video(model, rtsp_url, output_path):
             continue
         # out = process_an_image(frame, framewidth, frameheight)
         out = test_lanenet_one_img(model, frame)
-        print(out)
-        cv2.imshow('out_all', out)
+        # print(out)
+        # cv2.namedWindow('out_img', cv2.WINDOW_NORMAL)
+        # cv2.resizeWindow('out_img', 1024, 756)
+        cv2.imshow('out_img', out)
         # cv2.namedWindow('out_img', cv2.WINDOW_NORMAL)
         # cv2.resizeWindow('out_img', 1280, 720)
         # cv2.imshow("out_img", out)
