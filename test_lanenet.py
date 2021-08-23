@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-08-05 17:41:49
-LastEditTime: 2021-08-20 16:46:07
+LastEditTime: 2021-08-23 15:06:05
 LastEditors: Please set LastEditors
 Description: 批量测试文件夹中的图片
 FilePath: /lanenet-lane-detection-pytorch/test_lanenet.py
@@ -21,6 +21,7 @@ import numpy as np
 from PIL import Image
 import glob
 from model.utils import lanenet_cluster, lanenet_postprocess
+import matplotlib.pyplot as plt
 
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -31,13 +32,25 @@ def load_test_data(img_path, transform):
     return img
 
 
+def minmax_scale(input_arr):
+    """
+    :param input_arr:
+    :return:
+    """
+    min_val = np.min(input_arr)
+    max_val = np.max(input_arr)
+
+    output_arr = (input_arr - min_val) * 255.0 / (max_val - min_val)
+
+    return output_arr
+
+
 def test_lanenet():
     """"
     :param src_dir:
     :param weights_path:
     :return:
     """
-
     args = parse_args()
     resize_height = args.height
     resize_width = args.width
@@ -91,12 +104,17 @@ def test_lanenet():
         postprocessor = lanenet_postprocess.LaneNetPoseProcessor()
         binary_pred = postprocessor.postprocess(binary_pred)
         print('*****fuck! img_name is: ', img_name)
-        # TODO  曝光增强过滤 Done 已经做了，在聚类阶段异常抛出
         mask_image, _, _, _ = cluster.get_lane_mask(
             instance_seg_ret=instance_pred,
             binary_seg_ret=binary_pred,
             gt_image=input)
 
+        # print(instance_pred.shape)
+        for i in range(3):
+            instance_pred[:, :, i] = minmax_scale(instance_pred[:, :, i])
+        embedding_image = np.array(instance_pred, np.uint8)
+
+        # cv2.imwrite('./mask_img.png', mask_image[0])
         # 拓展binary_pred通道 方便可视化
         bin_image = np.expand_dims(binary_pred, axis=2)
         bin_image = np.concatenate((bin_image, bin_image, bin_image), axis=-1)
@@ -115,7 +133,12 @@ def test_lanenet():
         #            instance_pred * 255)
         # cv2.imwrite(os.path.join(save_dir, 'binary_output' + img_name),
         #            binary_pred * 255)
-        cv2.imwrite(os.path.join(save_dir, 'out_all' + img_name), out_all)
+        # cv2.imwrite(os.path.join(save_dir, 'out_all' + img_name), out_all)
+        plt.figure('out_all')
+        plt.imshow(mask_image[:, :, (2, 1, 0)])
+        plt.figure('embedding')
+        plt.imshow(embedding_image)
+        plt.show()
 
 
 if __name__ == '__main__':

@@ -17,6 +17,7 @@ import time
 import warnings
 import cv2
 import time
+import matplotlib.pyplot as plt
 try:
     from cv2 import cv2
 except ImportError:
@@ -83,9 +84,9 @@ class LaneNetCluster(object):
         db = DBSCAN(eps=0.35, min_samples=200)
         try:
             # 去除均值并缩放到单位方差来标准化特征
-            #features = StandardScaler().fit_transform(prediction)
-            #db.fit(features)
-            db.fit(prediction)
+            features = StandardScaler().fit_transform(prediction)
+            db.fit(features)
+            # db.fit(prediction)
         except Exception as err:
             log.error(err)
             log.info('这张图片异常，可能是曝光过度？')
@@ -180,21 +181,25 @@ class LaneNetCluster(object):
         # 使用dbscan
         num_clusters, labels, cluster_centers = self._cluster_v2(lane_embedding_feats)
 
-        # 聚类簇超过八个则选择其中类内样本最多的八个聚类簇保留下来
-        if num_clusters > 8:
+        # 聚类簇超过八个则选择其中类内样本最多的八个聚类簇保留下来 这里我改成两个。
+        if num_clusters > 2:
             cluster_sample_nums = []
             for i in range(num_clusters):
                 cluster_sample_nums.append(len(np.where(labels == i)[0]))
             sort_idx = np.argsort(-np.array(cluster_sample_nums, np.int64))
-            cluster_index = np.array(range(num_clusters))[sort_idx[0:8]]
+            cluster_index = np.array(range(num_clusters))[sort_idx[0:2]]
         else:
             cluster_index = range(num_clusters)
 
         mask_image = np.copy(gt_image)
         for index, i in enumerate(cluster_index):
+            if i == -1:
+                continue
             idx = np.where(labels == i)
-            print(len(idx[0]))
+            # print(idx)
+            # print(len(idx[0]))
             coord = lane_coordinate[idx]
+            print(coord)
             color = (int(self._color_map[index][0]),
                      int(self._color_map[index][1]),
                      int(self._color_map[index][2]))
@@ -204,10 +209,10 @@ class LaneNetCluster(object):
 
 
 if __name__ == '__main__':
-    binary_seg_image = cv2.imread('/Users/wk/Desktop/Mac_Workspaces/lanenet-lane-detection-pytorch/test_output/binary_output.jpg', cv2.IMREAD_GRAYSCALE)
+    binary_seg_image = cv2.imread('/Users/wk/Desktop/Mac_Workspaces/lanenet-lane-detection-pytorch/test_output_1/binary_output0298.png', cv2.IMREAD_GRAYSCALE)
     binary_seg_image[np.where(binary_seg_image == 255)] = 1
-    instance_seg_image = cv2.imread('/Users/wk/Desktop/Mac_Workspaces/lanenet-lane-detection-pytorch/test_output/instance_output.jpg', cv2.IMREAD_UNCHANGED)
-    gt_image = cv2.imread('/Users/wk/Desktop/Mac_Workspaces/lanenet-lane-detection-pytorch/test_output/input.jpg', cv2.IMREAD_UNCHANGED)
+    instance_seg_image = cv2.imread('/Users/wk/Desktop/Mac_Workspaces/lanenet-lane-detection-pytorch/test_output_1/instance_output0298.png', cv2.IMREAD_UNCHANGED)
+    gt_image = cv2.imread('/Users/wk/Desktop/Mac_Workspaces/lanenet-lane-detection-pytorch/test_output_1/input_0298.png', cv2.IMREAD_UNCHANGED)
     ele_mex = np.max(instance_seg_image, axis=(0, 1))
     for i in range(3):
         if ele_mex[i] == 0:
@@ -221,4 +226,11 @@ if __name__ == '__main__':
     mask_image = cluster.get_lane_mask(instance_seg_ret=instance_seg_image, binary_seg_ret=binary_seg_image, gt_image=gt_image)
     t_cost = time.time() - t_start
     print('单张图像车道线聚类耗时: {:.5f}s'.format(t_cost))
-    cv2.imwrite('./mask_image.png', mask_image[0])
+
+    plt.figure('mask_iamge')
+    plt.imshow(mask_image[0][:,:,(2,1,0)])
+    plt.figure('instance_image')
+    plt.imshow(embedding_image[:,:,(2,1,0)])
+    plt.show()
+
+    # cv2.imwrite('./mask_image.png', mask_image[0])
