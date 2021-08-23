@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-08-03 16:30:37
-LastEditTime: 2021-08-11 16:53:33
+LastEditTime: 2021-08-23 16:33:33
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: /lanenet-lane-detection-pytorch/model/utils/cli_helper_test.py
@@ -38,4 +38,11 @@ def parse_args():
     parser.add_argument("--backend",
                         help="backbone network",
                         default='resnet101')
+    parser.add_argument("-o",
+                        "--output_path",
+                        default="./test_output/",
+                        help="path to output video")
+    parser.add_argument("-r",
+                        "--rtsp_url",
+                        default="rtsp://192.168.31.70:8554/mystream")
     return parser.parse_args()

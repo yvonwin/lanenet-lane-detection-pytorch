@@ -199,7 +199,7 @@ class LaneNetCluster(object):
             # print(idx)
             # print(len(idx[0]))
             coord = lane_coordinate[idx]
-            print(coord)
+            # print(coord)
             color = (int(self._color_map[index][0]),
                      int(self._color_map[index][1]),
                      int(self._color_map[index][2]))
