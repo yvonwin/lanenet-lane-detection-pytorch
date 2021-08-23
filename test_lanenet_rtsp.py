@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-07-19 14:26:06
-LastEditTime: 2021-08-23 18:14:08
+LastEditTime: 2021-08-23 18:17:04
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: /refact_7.13/pipeline.py
@@ -144,14 +144,14 @@ def test_lanenet_one_img(model, frame):
 def process_video(model, rtsp_url, output_path):
     rtscap = RTSCapture.create(rtsp_url)
     rtscap.start_read()
-    framewidth = rtscap.get(cv2.CAP_PROP_FRAME_WIDTH)
-    frameheight = rtscap.get(
-        cv2.CAP_PROP_FRAME_HEIGHT)  # 图像横轴中心点（宽度）   #图像纵轴中心点（高度）ßß
+    # framewidth = rtscap.get(cv2.CAP_PROP_FRAME_WIDTH)
+    # frameheight = rtscap.get(
+    #    cv2.CAP_PROP_FRAME_HEIGHT)  # 图像横轴中心点（宽度）   #图像纵轴中心点（高度）ßß
     # 帧处理代码写这
-    out_videofile = output_path + '_test.mp4'
-    fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
+    # out_videofile = output_path + '_test.mp4'
+    # fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
     # output_video = cv2.VideoWriter(out_videofile, fourcc, FPS,
-                                   (int(framewidth), int(frameheight)))
+    #                               (int(framewidth), int(frameheight)))
     print('start to write video')
     while rtscap.isStarted():
         ok, frame = rtscap.read_latest_frame()  # read_latest_frame() 替代 read() 此时取到的为最新的帧
