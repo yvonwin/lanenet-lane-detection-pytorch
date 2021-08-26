@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-07-19 14:26:06
-LastEditTime: 2021-08-23 18:17:04
+LastEditTime: 2021-08-26 10:27:06
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: /refact_7.13/pipeline.py
@@ -9,10 +9,10 @@ FilePath: /refact_7.13/pipeline.py
 import os
 import cv2
 import numpy as np
-import math
+# import math
 # import argparse
 from RTSCapture import RTSCapture
-import os.path as ops
+# import os.path as ops
 # import time
 # from sklearn import cluster
 import torch
@@ -21,9 +21,9 @@ from torchvision import transforms
 from model.utils.cli_helper_test import parse_args
 # from model.utils.postprocess import embedding_post_process
 from PIL import Image
-import glob
+# import glob
 from model.utils import lanenet_cluster, lanenet_postprocess
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 FPS = 25
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -194,6 +194,6 @@ if __name__ == "__main__":
     # args = ap.parse_args()
     args = parse_args()
     model = load_model(args.model, args.model_type, args.backend)
-    process_video(model=model,rtsp_url=args.rtsp_url, output_path=args.output_path)
+    process_video(model=model, rtsp_url=args.rtsp_url, output_path=args.output_path)
     if args.model == "Image":
         pass

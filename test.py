@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-08-03 16:30:37
-LastEditTime: 2021-08-17 18:14:06
+LastEditTime: 2021-08-26 10:23:59
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: ~/Mac_Workspaces/lanenet-lane-detection-pytorch/test.py
@@ -82,9 +82,7 @@ def test():
     instance_pred = instance_pred.transpose(1, 2, 0)
     cluster = lanenet_cluster.LaneNetCluster()
     #postprocessor = lanenet_postprocess.LaneNetPoseProcessor()
-    mask_image, _, _, _ = cluster.get_lane_mask(instance_seg_ret=instance_pred,
-                                                binary_seg_ret=binary_pred,
-                                                gt_image=input)
+    mask_image, _, _, _ = cluster.get_lane_mask(instance_seg_ret=instance_pred, binary_seg_ret=binary_pred, gt_image=input)
                                                 
     cv2.imwrite('./test_output/mask_result.png', mask_image)
     cv2.imwrite(os.path.join('test_output', 'input.jpg'), input)

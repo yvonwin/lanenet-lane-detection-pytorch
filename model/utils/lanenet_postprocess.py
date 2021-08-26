@@ -1,30 +1,25 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# @Time    : 18-5-30 上午10:04
-# @Author  : Luo Yao
-# @Site    : https://github.com/MaybeShewill-CV/lanenet-lane-detection
-# @File    : lanenet_postprocess.py
-# @IDE: PyCharm Community Edition
 """
-LaneNet模型后处理 暂未使用
+Author: your name
+Date: 2021-08-23 15:04:30
+LastEditTime: 2021-08-26 10:26:38
+LastEditors: Please set LastEditors
+Description: In User Settings Edit
+FilePath: /lanenet-lane-detection-pytorch/model/utils/lanenet_postprocess.py
+"""
+
+"""
+LaneNet模型后处理
 """
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
-try:
-    from cv2 import cv2
-except ImportError:
-    pass
 
 
 class LaneNetPoseProcessor(object):
-    """
+    """ """
 
-    """
     def __init__(self):
-        """
-
-        """
+        """ """
         pass
 
     @staticmethod
@@ -88,16 +83,19 @@ class LaneNetPoseProcessor(object):
 
 def main():
     processor = LaneNetPoseProcessor()
-    image = cv2.imread('/Users/wk/Desktop/Mac_Workspaces/lanenet-lane-detection-pytorch/test_output1/binary_output0071.png', cv2.IMREAD_GRAYSCALE)
+    image = cv2.imread(
+        "/Users/wk/Desktop/Mac_Workspaces/lanenet-lane-detection-pytorch/test_output1/binary_output0071.png",
+        cv2.IMREAD_GRAYSCALE,
+    )
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     postprocess_ret = processor.postprocess(image)
 
-    plt.figure('src')
+    plt.figure("src")
     plt.imshow(image)
-    plt.figure('post')
+    plt.figure("post")
     plt.imshow(postprocess_ret)
     plt.show()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

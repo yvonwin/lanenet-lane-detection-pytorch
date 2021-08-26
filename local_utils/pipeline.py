@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-08-02 18:14:51
-LastEditTime: 2021-08-16 15:15:05
+LastEditTime: 2021-08-24 10:20:38
 LastEditors: Please set LastEditors
 Description: 批量处理labelme_json文件
 FilePath: /labelme处理/pipeline.py
@@ -44,6 +44,7 @@ def main(json_dir):
 
 
 if __name__ == '__main__':
+    print("注意：如处理单个文件夹当前文件夹下子文件夹应为空")
     print('help: python pipeline.py --json_dir')
     args = init_args()
     main(args.json_dir)

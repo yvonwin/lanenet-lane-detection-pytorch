@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-08-05 17:41:49
-LastEditTime: 2021-08-23 17:05:22
+LastEditTime: 2021-08-26 10:27:42
 LastEditors: Please set LastEditors
 Description: 批量测试文件夹中的图片
 FilePath: /lanenet-lane-detection-pytorch/test_lanenet.py
@@ -10,7 +10,7 @@ FilePath: /lanenet-lane-detection-pytorch/test_lanenet.py
 import os
 import os.path as ops
 # import time
-import cv2
+# import cv2
 # from sklearn import cluster
 import torch
 from model.lanenet.LaneNet import LaneNet
@@ -97,7 +97,7 @@ def test_lanenet_one_img():
     # 开始后处理
     instance_pred = instance_pred.transpose(1, 2, 0)
     cluster = lanenet_cluster.LaneNetCluster()
-    # 删除一些比较小的联通区域
+    # 删除一些比较小的联通区域 TODO 删除离群点，延长线段
     postprocessor = lanenet_postprocess.LaneNetPoseProcessor()
     binary_pred = postprocessor.postprocess(binary_pred)
     print('*****fuck! img_name is: ', img_name)
@@ -116,13 +116,13 @@ def test_lanenet_one_img():
     bin_image = np.expand_dims(binary_pred, axis=2)
     bin_image = np.concatenate((bin_image, bin_image, bin_image), axis=-1)
     # 结果可视化
-    out_all = np.vstack([
-        np.hstack([
-            cv2.cvtColor(input, cv2.COLOR_RGB2BGR),
-            cv2.cvtColor(mask_image, cv2.COLOR_RGB2BGR),
-        ]),
-        np.hstack([instance_pred * 255, bin_image * 255])
-    ])
+    # out_all = np.vstack([
+    #     np.hstack([
+    #         cv2.cvtColor(input, cv2.COLOR_RGB2BGR),
+    #         cv2.cvtColor(mask_image, cv2.COLOR_RGB2BGR),
+    #     ]),
+    #     np.hstack([instance_pred * 255, bin_image * 255])
+    # ])
     # cv2.imwrite(os.path.join(save_dir, 'input_' + img_name), input)
     # cv2.imwrite(os.path.join(save_dir, 'result_' + img_name), mask_image)
 
@@ -131,7 +131,7 @@ def test_lanenet_one_img():
     # cv2.imwrite(os.path.join(save_dir, 'binary_output' + img_name),
     #            binary_pred * 255)
     # cv2.imwrite(os.path.join(save_dir, 'out_all' + img_name), out_all)
-    plt.figure('out_all')
+    plt.figure('mask_image')
     plt.imshow(mask_image[:, :, (2, 1, 0)])
     plt.figure('embedding')
     plt.imshow(embedding_image)
@@ -212,13 +212,13 @@ def test_lanenet_batch():
         bin_image = np.expand_dims(binary_pred, axis=2)
         bin_image = np.concatenate((bin_image, bin_image, bin_image), axis=-1)
         # 结果可视化
-        out_all = np.vstack([
-            np.hstack([
-                cv2.cvtColor(input, cv2.COLOR_RGB2BGR),
-                cv2.cvtColor(mask_image, cv2.COLOR_RGB2BGR),
-            ]),
-            np.hstack([instance_pred * 255, bin_image * 255])
-        ])
+        # out_all = np.vstack([
+        #     np.hstack([
+        #         cv2.cvtColor(input, cv2.COLOR_RGB2BGR),
+        #         cv2.cvtColor(mask_image, cv2.COLOR_RGB2BGR),
+        #     ]),
+        #     np.hstack([instance_pred * 255, bin_image * 255])
+        # ])
         # cv2.imwrite(os.path.join(save_dir, 'input_' + img_name), input)
         # cv2.imwrite(os.path.join(save_dir, 'result_' + img_name), mask_image)
 

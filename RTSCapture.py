@@ -20,6 +20,7 @@
 import threading
 from time import sleep
 import cv2
+import sys
 
 
 class RTSCapture(cv2.VideoCapture):
@@ -29,7 +30,7 @@ class RTSCapture(cv2.VideoCapture):
 
     _cur_frame = None
     _reading = False
-    schemes = ["rtsp://", "rtmp://"]  #用于识别实时流
+    schemes = ["rtsp://", "rtmp://"]  # 用于识别实时流
 
     @staticmethod
     def create(url, *schemes):
@@ -61,8 +62,9 @@ class RTSCapture(cv2.VideoCapture):
         """子线程读取最新视频帧方法"""
         while self._reading and self.isOpened():
             ok, frame = self.read()
-            if not ok: break
-            self._cur_frame = frame  #保存最新帧,此处采用临时变量保存，如有保存的需要，可以用队列保存
+            if not ok:
+                break
+            self._cur_frame = frame  # 保存最新帧,此处采用临时变量保存，如有保存的需要，可以用队列保存
         self._reading = False
 
     def read2(self):
@@ -81,10 +83,9 @@ class RTSCapture(cv2.VideoCapture):
     def stop_read(self):
         """退出子线程方法"""
         self._reading = False
-        if self.frame_receiver.is_alive(): self.frame_receiver.join()
+        if self.frame_receiver.is_alive():
+            self.frame_receiver.join()
 
-
-import sys
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
@@ -93,11 +94,10 @@ if __name__ == '__main__':
         sys.exit()
 
     rtscap = RTSCapture.create(sys.argv[1])
-    rtscap.start_read()  #启动子线程并改变 read_latest_frame 的指向
+    rtscap.start_read()  # 启动子线程并改变 read_latest_frame 的指向
 
     while rtscap.isStarted():
-        ok, frame = rtscap.read_latest_frame(
-        )  #read_latest_frame() 替代 read() 此时取到的为最新的帧
+        ok, frame = rtscap.read_latest_frame()  # read_latest_frame() 替代 read() 此时取到的为最新的帧
         if cv2.waitKey(100) & 0xFF == ord('q'):
             break
         if not ok:

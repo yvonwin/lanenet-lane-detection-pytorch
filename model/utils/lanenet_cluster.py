@@ -12,16 +12,11 @@ import numpy as np
 import glog as log
 from sklearn.cluster import MeanShift
 from sklearn.cluster import DBSCAN
-from sklearn.preprocessing import  StandardScaler
+from sklearn.preprocessing import StandardScaler
 import time
 import warnings
 import cv2
-import time
 import matplotlib.pyplot as plt
-try:
-    from cv2 import cv2
-except ImportError:
-    pass
 
 
 class LaneNetCluster(object):
@@ -30,17 +25,17 @@ class LaneNetCluster(object):
     """
 
     def __init__(self):
-        """
-
-        """
-        self._color_map = [np.array([255, 0, 0]),
-                           np.array([0, 255, 0]),
-                           np.array([0, 0, 255]),
-                           np.array([125, 125, 0]),
-                           np.array([0, 125, 125]),
-                           np.array([125, 0, 125]),
-                           np.array([50, 100, 50]),
-                           np.array([100, 50, 100])]
+        """ """
+        self._color_map = [
+            np.array([255, 0, 0]),
+            np.array([0, 255, 0]),
+            np.array([0, 0, 255]),
+            np.array([125, 125, 0]),
+            np.array([0, 125, 125]),
+            np.array([125, 0, 125]),
+            np.array([50, 100, 50]),
+            np.array([100, 50, 100]),
+        ]
         pass
 
     @staticmethod
@@ -52,20 +47,20 @@ class LaneNetCluster(object):
         :return:
         """
         ms = MeanShift(bandwidth, bin_seeding=True)
-        log.info('开始Mean shift聚类 ...')
+        log.info("开始Mean shift聚类 ...")
         tic = time.time()
         try:
             ms.fit(prediction)
         except ValueError as err:
             log.error(err)
             return 0, [], []
-        log.info('Mean Shift耗时: {:.5f}s'.format(time.time() - tic))
+        log.info("Mean Shift耗时: {:.5f}s".format(time.time() - tic))
         labels = ms.labels_
         cluster_centers = ms.cluster_centers_
 
         num_clusters = cluster_centers.shape[0]
 
-        log.info('聚类簇个数为: {:d}'.format(num_clusters))
+        log.info("聚类簇个数为: {:d}".format(num_clusters))
 
         return num_clusters, labels, cluster_centers
 
@@ -77,7 +72,7 @@ class LaneNetCluster(object):
         :return:
         """
         # db = DBSCAN(eps=0.7, min_samples=200).fit(prediction)
-        log.info('开始dbscan聚类')
+        log.info("开始dbscan聚类")
         tic = time.time()
         # 由于存在细线问题（标注数据导致）设置min_Samples为20
         # db = DBSCAN(eps=0.35, min_samples=20)
@@ -89,18 +84,18 @@ class LaneNetCluster(object):
             # db.fit(prediction)
         except Exception as err:
             log.error(err)
-            log.info('这张图片异常，可能是曝光过度？')
+            log.info("这张图片异常，可能是曝光过度？")
             return 0, [], []
         if db:
             db_labels = db.labels_
             unique_labels = np.unique(db_labels)
             unique_labels = [tmp for tmp in unique_labels if tmp != -1]
-            log.info('聚类簇个数为: {:d}'.format(len(unique_labels)))
+            log.info("聚类簇个数为: {:d}".format(len(unique_labels)))
 
             num_clusters = len(unique_labels)
             cluster_centers = db.components_
 
-            log.info('dbscan耗时: {:.5f}s'.format(time.time() - tic))
+            log.info("dbscan耗时: {:.5f}s".format(time.time() - tic))
 
             return num_clusters, db_labels, cluster_centers
 
@@ -152,7 +147,7 @@ class LaneNetCluster(object):
         x_fit = []
         y_fit = []
         with warnings.catch_warnings():
-            warnings.filterwarnings('error')
+            warnings.filterwarnings("error")
             try:
                 f1 = np.polyfit(y, x, 3)
                 p1 = np.poly1d(f1)
@@ -163,6 +158,7 @@ class LaneNetCluster(object):
                     y_fit.append(i)
                 x_fit = p1(y_fit)
             except Warning as e:
+                log.error(e)
                 x_fit = x
                 y_fit = y
             finally:
@@ -205,15 +201,24 @@ class LaneNetCluster(object):
             #         int(self._color_map[index][2]))
             color = (0, 255, 0)
             coord = np.array(coord)
-            mask_image[coord[:,0], coord[:,1], :] = color
+            mask_image[coord[:, 0], coord[:, 1], :] = color
         return mask_image, lane_coordinate, cluster_index, labels
 
 
-if __name__ == '__main__':
-    binary_seg_image = cv2.imread('/Users/wk/Desktop/Mac_Workspaces/lanenet-lane-detection-pytorch/test_output_1/binary_output0298.png', cv2.IMREAD_GRAYSCALE)
+if __name__ == "__main__":
+    binary_seg_image = cv2.imread(
+        "/Users/wk/Desktop/Mac_Workspaces/lanenet-lane-detection-pytorch/test_output_1/binary_output0298.png",
+        cv2.IMREAD_GRAYSCALE,
+    )
     binary_seg_image[np.where(binary_seg_image == 255)] = 1
-    instance_seg_image = cv2.imread('/Users/wk/Desktop/Mac_Workspaces/lanenet-lane-detection-pytorch/test_output_1/instance_output0298.png', cv2.IMREAD_UNCHANGED)
-    gt_image = cv2.imread('/Users/wk/Desktop/Mac_Workspaces/lanenet-lane-detection-pytorch/test_output_1/input_0298.png', cv2.IMREAD_UNCHANGED)
+    instance_seg_image = cv2.imread(
+        "/Users/wk/Desktop/Mac_Workspaces/lanenet-lane-detection-pytorch/test_output_1/instance_output0298.png",
+        cv2.IMREAD_UNCHANGED,
+    )
+    gt_image = cv2.imread(
+        "/Users/wk/Desktop/Mac_Workspaces/lanenet-lane-detection-pytorch/test_output_1/input_0298.png",
+        cv2.IMREAD_UNCHANGED,
+    )
     ele_mex = np.max(instance_seg_image, axis=(0, 1))
     for i in range(3):
         if ele_mex[i] == 0:
@@ -224,14 +229,16 @@ if __name__ == '__main__':
     embedding_image = np.array(instance_seg_image, np.uint8)
     cluster = LaneNetCluster()
     t_start = time.time()
-    mask_image = cluster.get_lane_mask(instance_seg_ret=instance_seg_image, binary_seg_ret=binary_seg_image, gt_image=gt_image)
+    mask_image = cluster.get_lane_mask(
+        instance_seg_ret=instance_seg_image, binary_seg_ret=binary_seg_image, gt_image=gt_image
+    )
     t_cost = time.time() - t_start
-    print('单张图像车道线聚类耗时: {:.5f}s'.format(t_cost))
+    print("单张图像车道线聚类耗时: {:.5f}s".format(t_cost))
 
-    plt.figure('mask_iamge')
-    plt.imshow(mask_image[0][:,:,(2,1,0)])
-    plt.figure('instance_image')
-    plt.imshow(embedding_image[:,:,(2,1,0)])
+    plt.figure("mask_iamge")
+    plt.imshow(mask_image[0][:, :, (2, 1, 0)])
+    plt.figure("instance_image")
+    plt.imshow(embedding_image[:, :, (2, 1, 0)])
     plt.show()
 
     # cv2.imwrite('./mask_image.png', mask_image[0])
