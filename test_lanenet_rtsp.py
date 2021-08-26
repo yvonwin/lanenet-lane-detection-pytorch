@@ -1,17 +1,19 @@
-'''
-Author: your name
+"""
+Author: yvon
 Date: 2021-07-19 14:26:06
-LastEditTime: 2021-08-26 10:27:06
+LastEditTime: 2021-08-26 17:06:11
 LastEditors: Please set LastEditors
-Description: In User Settings Edit
+Description: 实时拉取rtsp测试
 FilePath: /refact_7.13/pipeline.py
-'''
+"""
 import os
 import cv2
 import numpy as np
+
 # import math
 # import argparse
 from RTSCapture import RTSCapture
+
 # import os.path as ops
 # import time
 # from sklearn import cluster
@@ -19,11 +21,17 @@ import torch
 from model.lanenet.LaneNet import LaneNet
 from torchvision import transforms
 from model.utils.cli_helper_test import parse_args
+from local_utils.lanenet_data_process import lanenet_data_process
+from local_utils.lanenet_bineary_process import get_binearycontour
+
+
 # from model.utils.postprocess import embedding_post_process
 from PIL import Image
+
 # import glob
 from model.utils import lanenet_cluster, lanenet_postprocess
-# import matplotlib.pyplot as plt
+
+import matplotlib.pyplot as plt
 
 FPS = 25
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -40,8 +48,7 @@ def load_model(model_path, model_type, backend):
     if torch.cuda.is_available():
         state_dict = torch.load(model_path)  # 默认保存的模型是gpu
     else:
-        state_dict = torch.load(model_path,
-                                map_location=torch.device('cpu'))  # cpu推理
+        state_dict = torch.load(model_path, map_location=torch.device("cpu"))  # cpu推理
     model.load_state_dict(state_dict)
     model.eval()
     model.to(DEVICE)
@@ -63,7 +70,7 @@ def minmax_scale(input_arr):
 
 def test_lanenet_one_img(model, frame):
 
-    """"
+    """ "
     :param src_dir:
     :param weights_path:
     :return:
@@ -74,11 +81,13 @@ def test_lanenet_one_img(model, frame):
     save_dir = args.save
 
     os.makedirs(save_dir, exist_ok=True)
-    data_transform = transforms.Compose([
-        transforms.Resize((resize_height, resize_width)),
-        transforms.ToTensor(),
-        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-    ])
+    data_transform = transforms.Compose(
+        [
+            transforms.Resize((resize_height, resize_width)),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+        ]
+    )
     input = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
     dummy_input = data_transform(input)
     dummy_input = dummy_input.to(DEVICE)
@@ -90,41 +99,39 @@ def test_lanenet_one_img(model, frame):
     input = input.resize((resize_width, resize_height))
     input = np.array(input)
 
-    instance_pred = torch.squeeze(
-        outputs['instance_seg_logits'].detach().to('cpu')).numpy()
-    binary_pred = torch.squeeze(
-        outputs['binary_seg_pred']).to('cpu').numpy()
+    instance_pred = torch.squeeze(outputs["instance_seg_logits"].detach().to("cpu")).numpy()
+    binary_pred = torch.squeeze(outputs["binary_seg_pred"]).to("cpu").numpy()
 
     # 开始后处理
     instance_pred = instance_pred.transpose(1, 2, 0)
     cluster = lanenet_cluster.LaneNetCluster()
     # 删除一些比较小的联通区域
-    postprocessor = lanenet_postprocess.LaneNetPoseProcessor()
-    binary_pred = postprocessor.postprocess(binary_pred)
+    # postprocessor = lanenet_postprocess.LaneNetPoseProcessor()
+    # binary_pred = postprocessor.postprocess(binary_pred)
+    # TODO tian process
+    import time
+    start_time = time.time()
+    binary_pred = get_binearycontour(binary_pred)  # 修改bineary图像处理使用
     # print('*****fuck! img_name is: ', img_name)
     mask_image, _, _, _ = cluster.get_lane_mask(
-        instance_seg_ret=instance_pred,
-        binary_seg_ret=binary_pred,
-        gt_image=input)
-    # mask_image = mask_image[:, :, (2, 1, 0)]
-    mask_image = cv2.cvtColor(mask_image, cv2.COLOR_RGB2BGR)
-    # print(instance_pred.shape)
-    # for i in range(3):
-    #     instance_pred[:, :, i] = minmax_scale(instance_pred[:, :, i])
+        instance_seg_ret=instance_pred, binary_seg_ret=binary_pred, gt_image=input
+    )
+    print(instance_pred.shape)
+    for i in range(3):
+        instance_pred[:, :, i] = minmax_scale(instance_pred[:, :, i])
     # embedding_image = np.array(instance_pred, np.uint8)
 
-    # cv2.imwrite('./mask_img.png', mask_image[0])
     # 拓展binary_pred通道 方便可视化
-    # bin_image = np.expand_dims(binary_pred, axis=2)
-    # bin_image = np.concatenate((bin_image, bin_image, bin_image), axis=-1)
-    # # 结果可视化
-    # out_all = np.vstack([
-    #     np.hstack([
-    #         cv2.cvtColor(input, cv2.COLOR_RGB2BGR),
-    #         cv2.cvtColor(mask_image, cv2.COLOR_RGB2BGR),
-    #     ]),
-    #     np.hstack([instance_pred * 255, bin_image * 255])
-    # ])
+    bin_image = np.expand_dims(binary_pred, axis=2)
+    bin_image = np.concatenate((bin_image, bin_image, bin_image), axis=-1)
+    # 结果可视化
+    # # out_all = np.vstack(
+    # #     [np.hstack([input.astype(np.uint8), mask_image.astype(np.uint8)]), np.hstack([instance_pred * 255, bin_image * 255])]
+    # # )
+    out_all = np.vstack(
+        [np.hstack([cv2.cvtColor(input, cv2.COLOR_RGB2BGR)/255.0, cv2.cvtColor(mask_image, cv2.COLOR_RGB2BGR)/255.0]), np.hstack([instance_pred * 255, bin_image * 255])]
+    )
+    cv2.imshow("out_all", out_all)
     # cv2.imwrite(os.path.join(save_dir, 'input_' + img_name), input)
     # cv2.imwrite(os.path.join(save_dir, 'result_' + img_name), mask_image)
 
@@ -132,9 +139,9 @@ def test_lanenet_one_img(model, frame):
     #            instance_pred * 255)
     # cv2.imwrite(os.path.join(save_dir, 'binary_output' + img_name),
     #            binary_pred * 255)
-    # cv2.imwrite(os.path.join(save_dir, 'out_all' + img_name), out_all)
+    # cv2.imwrite(os.path.join(save_dir, 'out_all.png'), out_all)
     # plt.figure('out_all')
-    # plt.imshow(mask_image[:, :, (2, 1, 0)])
+    # plt.imshow(out_all[:, :, (2, 1, 0)])
     # plt.figure('embedding')
     # plt.imshow(embedding_image)
     # plt.show()
@@ -152,10 +159,10 @@ def process_video(model, rtsp_url, output_path):
     # fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
     # output_video = cv2.VideoWriter(out_videofile, fourcc, FPS,
     #                               (int(framewidth), int(frameheight)))
-    print('start to write video')
+    print("start to write video")
     while rtscap.isStarted():
         ok, frame = rtscap.read_latest_frame()  # read_latest_frame() 替代 read() 此时取到的为最新的帧
-        if cv2.waitKey(100) & 0xFF == ord('q'):
+        if cv2.waitKey(100) & 0xFF == ord("q"):
             break
         if not ok:
             continue
@@ -164,7 +171,9 @@ def process_video(model, rtsp_url, output_path):
         # print(out)
         # cv2.namedWindow('out_img', cv2.WINDOW_NORMAL)
         # cv2.resizeWindow('out_img', 1024, 756)
-        cv2.imshow('out_img', out)
+        
+        # cv2.imshow("out_img", out)
+
         # cv2.namedWindow('out_img', cv2.WINDOW_NORMAL)
         # cv2.resizeWindow('out_img', 1280, 720)
         # cv2.imshow("out_img", out)
