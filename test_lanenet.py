@@ -49,96 +49,6 @@ def minmax_scale(input_arr):
     return output_arr
 
 
-def load_model(model_path, model_type, backend):
-    model = LaneNet(arch=model_type, backend=backend)
-    if torch.cuda.is_available():
-        state_dict = torch.load(model_path)  # 默认保存的模型是gpu
-    else:
-        state_dict = torch.load(model_path, map_location=torch.device("cpu"))  # cpu推理
-    model.load_state_dict(state_dict)
-    model.eval()
-    model.to(DEVICE)
-    return model
-
-
-def test_lanenet_one_img():
-
-    """ "
-    :param src_dir:
-    :param weights_path:
-    :return:
-    """
-    args = parse_args()
-    resize_height = args.height
-    resize_width = args.width
-    save_dir = args.save
-
-    img_path = args.img
-    assert ops.exists(img_path), "{:s} not exist".format(img_path)
-    os.makedirs(save_dir, exist_ok=True)
-    data_transform = transforms.Compose(
-        [
-            transforms.Resize((resize_height, resize_width)),
-            transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-        ]
-    )
-
-    model = load_model(args.model, args.model_type, args.backend)
-    img_name = img_path.split("/")[-1]
-    dummy_input = load_test_data(img_path, data_transform).to(DEVICE)
-    dummy_input = torch.unsqueeze(dummy_input, dim=0)
-    outputs = model(dummy_input)
-
-    input = Image.open(img_path)
-    input = input.resize((resize_width, resize_height))
-    input = np.array(input)
-
-    instance_pred = torch.squeeze(outputs["instance_seg_logits"].detach().to("cpu")).numpy()
-    binary_pred = torch.squeeze(outputs["binary_seg_pred"]).to("cpu").numpy()
-
-    # 开始后处理
-    instance_pred = instance_pred.transpose(1, 2, 0)
-    cluster = lanenet_cluster.LaneNetCluster()
-    # 删除一些比较小的联通区域 TODO 删除离群点，延长线段
-    postprocessor = lanenet_postprocess.LaneNetPoseProcessor()
-    binary_pred = postprocessor.postprocess(binary_pred)
-    print("*****fuck! img_name is: ", img_name)
-    mask_image, _, _, _ = cluster.get_lane_mask(
-        instance_seg_ret=instance_pred, binary_seg_ret=binary_pred, gt_image=input
-    )
-
-    # print(instance_pred.shape)
-    for i in range(3):
-        instance_pred[:, :, i] = minmax_scale(instance_pred[:, :, i])
-    embedding_image = np.array(instance_pred, np.uint8)
-
-    # 拓展binary_pred通道 方便可视化
-    bin_image = np.expand_dims(binary_pred, axis=2)
-    bin_image = np.concatenate((bin_image, bin_image, bin_image), axis=-1)
-    # 结果可视化
-    # out_all = np.vstack([
-    #     np.hstack([
-    #         cv2.cvtColor(input, cv2.COLOR_RGB2BGR),
-    #         cv2.cvtColor(mask_image, cv2.COLOR_RGB2BGR),
-    #     ]),
-    #     np.hstack([instance_pred * 255, bin_image * 255])
-    # ])
-    # cv2.imwrite(os.path.join(save_dir, 'input_' + img_name), input)
-    # cv2.imwrite(os.path.join(save_dir, 'result_' + img_name), mask_image)
-
-    # cv2.imwrite(os.path.join(save_dir, 'instance_output' + img_name),
-    #            instance_pred * 255)
-    # cv2.imwrite(os.path.join(save_dir, 'binary_output' + img_name),
-    #            binary_pred * 255)
-    # cv2.imwrite(os.path.join(save_dir, 'out_all' + img_name), out_all)
-    plt.figure("mask_image")
-    plt.imshow(mask_image[:, :, (2, 1, 0)])
-    plt.figure("embedding")
-    plt.imshow(embedding_image)
-    plt.show()
-
-
 def test_lanenet_batch():
     """ "
     :param src_dir:
@@ -235,4 +145,3 @@ def test_lanenet_batch():
 
 if __name__ == "__main__":
     test_lanenet_batch()
-    # test_lanenet_one_img() # 测试单张图片 需要自己手动输入图片路径
