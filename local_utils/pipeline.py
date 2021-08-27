@@ -1,13 +1,11 @@
 '''
 Author: your name
 Date: 2021-08-02 18:14:51
-LastEditTime: 2021-08-24 10:20:38
+LastEditTime: 2021-08-26 15:20:01
 LastEditors: Please set LastEditors
 Description: 批量处理labelme_json文件
 FilePath: /labelme处理/pipeline.py
 '''
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 import os
 import glob
 import argparse

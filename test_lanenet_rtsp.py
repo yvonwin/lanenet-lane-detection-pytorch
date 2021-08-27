@@ -15,13 +15,13 @@ import numpy as np
 from RTSCapture import RTSCapture
 
 # import os.path as ops
-# import time
+import time
 # from sklearn import cluster
 import torch
 from model.lanenet.LaneNet import LaneNet
 from torchvision import transforms
 from model.utils.cli_helper_test import parse_args
-from local_utils.lanenet_data_process import lanenet_data_process
+# from local_utils.lanenet_data_process import lanenet_data_process
 from local_utils.lanenet_bineary_process import get_binearycontour
 
 
@@ -108,11 +108,10 @@ def test_lanenet_one_img(model, frame):
     # 删除一些比较小的联通区域
     # postprocessor = lanenet_postprocess.LaneNetPoseProcessor()
     # binary_pred = postprocessor.postprocess(binary_pred)
-    # TODO tian process
-    import time
+    # process
     start_time = time.time()
     binary_pred = get_binearycontour(binary_pred)  # 修改bineary图像处理使用
-    # print('*****fuck! img_name is: ', img_name)
+    print("binerycontour处理时间为：", time.time() - start_time)
     mask_image, _, _, _ = cluster.get_lane_mask(
         instance_seg_ret=instance_pred, binary_seg_ret=binary_pred, gt_image=input
     )
@@ -124,14 +123,24 @@ def test_lanenet_one_img(model, frame):
     # 拓展binary_pred通道 方便可视化
     bin_image = np.expand_dims(binary_pred, axis=2)
     bin_image = np.concatenate((bin_image, bin_image, bin_image), axis=-1)
-    # 结果可视化
-    # # out_all = np.vstack(
-    # #     [np.hstack([input.astype(np.uint8), mask_image.astype(np.uint8)]), np.hstack([instance_pred * 255, bin_image * 255])]
-    # # )
-    out_all = np.vstack(
-        [np.hstack([cv2.cvtColor(input, cv2.COLOR_RGB2BGR)/255.0, cv2.cvtColor(mask_image, cv2.COLOR_RGB2BGR)/255.0]), np.hstack([instance_pred * 255, bin_image * 255])]
-    )
-    cv2.imshow("out_all", out_all)
+    # 结果可视化 imwrite使用
+    # out_all = np.vstack(
+    #     [
+    #         np.hstack([input.astype(np.uint8), mask_image.astype(np.uint8)]),
+    #         np.hstack([instance_pred * 255, bin_image * 255]),
+    #     ]
+    # )
+    # 修改归一化，便于imread
+    # out_all = np.vstack(
+    #     [
+    #         np.hstack(
+    #             [cv2.cvtColor(input, cv2.COLOR_RGB2BGR) / 255.0, cv2.cvtColor(mask_image, cv2.COLOR_RGB2BGR) / 255.0]
+    #         ),
+    #         np.hstack([instance_pred * 255, bin_image * 255]),
+    #     ]
+    # )
+    # cv2.imshow("out_all", out_all)
+
     # cv2.imwrite(os.path.join(save_dir, 'input_' + img_name), input)
     # cv2.imwrite(os.path.join(save_dir, 'result_' + img_name), mask_image)
 
@@ -154,7 +163,6 @@ def process_video(model, rtsp_url, output_path):
     # framewidth = rtscap.get(cv2.CAP_PROP_FRAME_WIDTH)
     # frameheight = rtscap.get(
     #    cv2.CAP_PROP_FRAME_HEIGHT)  # 图像横轴中心点（宽度）   #图像纵轴中心点（高度）ßß
-    # 帧处理代码写这
     # out_videofile = output_path + '_test.mp4'
     # fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
     # output_video = cv2.VideoWriter(out_videofile, fourcc, FPS,
@@ -166,17 +174,18 @@ def process_video(model, rtsp_url, output_path):
             break
         if not ok:
             continue
-        # out = process_an_image(frame, framewidth, frameheight)
+        # 帧处理
         out = test_lanenet_one_img(model, frame)
+        
         # print(out)
         # cv2.namedWindow('out_img', cv2.WINDOW_NORMAL)
         # cv2.resizeWindow('out_img', 1024, 756)
-        
+
         # cv2.imshow("out_img", out)
 
         # cv2.namedWindow('out_img', cv2.WINDOW_NORMAL)
         # cv2.resizeWindow('out_img', 1280, 720)
-        # cv2.imshow("out_img", out)
+        cv2.imshow("out_img", out)
         # cv2.imwrite('./test.jpg', out)
         # TODO 保存视频
         # output_video.write(out)
@@ -187,20 +196,6 @@ def process_video(model, rtsp_url, output_path):
 
 
 if __name__ == "__main__":
-    # ap = argparse.ArgumentParser(description="Demo of argparse")
-    # ap.add_argument('--model', default='Video')
-    # ap.add_argument("-i",
-    #                 "--input",
-    #                 default="./input_video/",
-    #                 help="path to input video")
-    # ap.add_argument("-o",
-    #                 "--output_path",
-    #                 default="./output_video/",
-    #                 help="path to output video")
-    # ap.add_argument("-r",
-    #                 "--rtsp_url",
-    #                 default="rtsp://localhost:8554/mystream")
-    # args = ap.parse_args()
     args = parse_args()
     model = load_model(args.model, args.model_type, args.backend)
     process_video(model=model, rtsp_url=args.rtsp_url, output_path=args.output_path)

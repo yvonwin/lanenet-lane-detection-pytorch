@@ -1,9 +1,9 @@
 '''
 Author: your name
 Date: 2021-08-03 16:30:37
-LastEditTime: 2021-08-16 18:15:01
+LastEditTime: 2021-08-26 15:53:32
 LastEditors: Please set LastEditors
-Description: In User Settings Edit
+Description: 评估 test.txt 数据集
 FilePath: /lanenet-lane-detection-pytorch/eval.py
 '''
 import time
@@ -20,7 +20,7 @@ from torchvision import transforms
 
 from model.utils.cli_helper_eval import parse_args
 from model.eval_function import Eval_Score
-from  local_utils import  init_logger
+from local_utils import init_logger
 
 # import numpy as np
 # from PIL import Image
