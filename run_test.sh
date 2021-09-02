@@ -1,0 +1,2 @@
+source ~/miniconda3/bin/activate pytorch16
+python test_lanenet.py --model_type ENet --src_dir '/Users/wk/Desktop/labelme处理/dataset_0/gt_image' --model '/Volumes/Public/wangkui_tmp/lanenet-pytorch_output/enet/log_dataset_3/2021-08-26-22-45-10_epochs300_ENet__best_model.pth'
