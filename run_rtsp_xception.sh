@@ -1,2 +1,0 @@
-source ~/miniconda3/bin/activate pytorch
-python test_lanenet_rtsp.py --model ~/Desktop/models/2021-08-18-14-10-09_epochs360_DeepLabv3+_xception_best_model.pth  --backend xception --rtsp_url rtsp://admin:Zhaodao1234!@192.168.31.63:554//Streaming/Channels/2

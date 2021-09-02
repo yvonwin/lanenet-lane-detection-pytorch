@@ -29,9 +29,9 @@ from local_utils.lanenet_bineary_process import get_binearycontour
 from PIL import Image
 
 # import glob
-from model.utils import lanenet_cluster, lanenet_postprocess
-
-import matplotlib.pyplot as plt
+from model.utils import lanenet_cluster
+# from model.utils import lanenet_postprocess
+# import matplotlib.pyplot as plt
 
 FPS = 25
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -126,20 +126,22 @@ def test_lanenet_one_img(model, frame):
     # 结果可视化 imwrite使用
     # out_all = np.vstack(
     #     [
-    #         np.hstack([input.astype(np.uint8), mask_image.astype(np.uint8)]),
-    #         np.hstack([instance_pred * 255, bin_image * 255]),
-    #     ]
-    # )
-    # 修改归一化，便于imread
-    # out_all = np.vstack(
-    #     [
     #         np.hstack(
-    #             [cv2.cvtColor(input, cv2.COLOR_RGB2BGR) / 255.0, cv2.cvtColor(mask_image, cv2.COLOR_RGB2BGR) / 255.0]
+    #             [cv2.cvtColor(input, cv2.COLOR_RGB2BGR), cv2.cvtColor(mask_image, cv2.COLOR_RGB2BGR)]
     #         ),
     #         np.hstack([instance_pred * 255, bin_image * 255]),
     #     ]
     # )
-    # cv2.imshow("out_all", out_all)
+    # 修改归一化，便于imread
+    out_all = np.vstack(
+        [
+            np.hstack(
+                [cv2.cvtColor(input, cv2.COLOR_RGB2BGR) / 255.0, cv2.cvtColor(mask_image, cv2.COLOR_RGB2BGR) / 255.0]
+            ),
+            np.hstack([instance_pred * 255, bin_image * 255]),
+        ]
+    )
+    cv2.imshow("out_all", out_all)
 
     # cv2.imwrite(os.path.join(save_dir, 'input_' + img_name), input)
     # cv2.imwrite(os.path.join(save_dir, 'result_' + img_name), mask_image)
@@ -176,7 +178,6 @@ def process_video(model, rtsp_url, output_path):
             continue
         # 帧处理
         out = test_lanenet_one_img(model, frame)
-        
         # print(out)
         # cv2.namedWindow('out_img', cv2.WINDOW_NORMAL)
         # cv2.resizeWindow('out_img', 1024, 756)

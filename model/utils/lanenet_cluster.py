@@ -72,7 +72,7 @@ class LaneNetCluster(object):
         :return:
         """
         # db = DBSCAN(eps=0.7, min_samples=200).fit(prediction)
-        log.info("开始dbscan聚类")
+        # log.info("开始dbscan聚类")
         tic = time.time()
         # 由于存在细线问题（标注数据导致）设置min_Samples为20
         # db = DBSCAN(eps=0.35, min_samples=20)
@@ -90,12 +90,12 @@ class LaneNetCluster(object):
             db_labels = db.labels_
             unique_labels = np.unique(db_labels)
             unique_labels = [tmp for tmp in unique_labels if tmp != -1]
-            log.info("聚类簇个数为: {:d}".format(len(unique_labels)))
+            # log.info("聚类簇个数为: {:d}".format(len(unique_labels)))
 
             num_clusters = len(unique_labels)
             cluster_centers = db.components_
 
-            log.info("dbscan耗时: {:.5f}s".format(time.time() - tic))
+            # log.info("dbscan耗时: {:.5f}s".format(time.time() - tic))
 
             return num_clusters, db_labels, cluster_centers
 

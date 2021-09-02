@@ -16,6 +16,7 @@ log/*
 test_output
 data/test_img
 nas
+data/*
 
 # Distribution / packaging
 .Python
