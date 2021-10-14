@@ -36,6 +36,7 @@ from model.utils import lanenet_cluster
 import socketserver
 import struct
 import threading
+import time
 
 
 FPS = 25
@@ -78,8 +79,10 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                     n = 4
                     boxes=[l[i:i + n] for i in range(0, len(l), n)]
                     print("receive boxes成功, boxes为",boxes)
+                    print('num_boxes为',num_boxes)
                 else:
                     status = 0
+            time.sleep(1)
 
     def finish(self):
         print('client is disconnected')
@@ -175,10 +178,11 @@ def test_lanenet_one_img(model, frame):
         if num_boxes > 0:
             if boxes is not None:
                 print('进入画框选择')
-                for box in boxes:
+                for box in boxes[:num_boxes]:
                     # x1,x2 为左上角  y1 y2为右下角
                     # draw box
-                    cv2.rectangle(mask_image, (box[0], box[1]), (box[0]-box[3], box[1]-box[4]), (0, 0, 255), 2)
+                    print(box)
+                    cv2.rectangle(mask_image, (int(box[0]), int(box[1])), (int(box[0]-box[2]), int(box[1]-box[3])), (0, 0, 255), 2)
 
     print(instance_pred.shape)
     for i in range(3):
