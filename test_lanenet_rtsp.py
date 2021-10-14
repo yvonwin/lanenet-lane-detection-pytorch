@@ -46,6 +46,7 @@ HOST, PORT = "127.0.0.1", 8200
 
 
 status = 0
+num_boxes = 0
 print('status被重置')
 
 class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
@@ -61,17 +62,16 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             # cur_thread = threading.current_thread()
             # print(cur_thread)
             # print(self.data)
+            global status
             if self.data:
                 news = struct.unpack('ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', self.data)
                 #print(news)
                 # print(type(news))  # is tuple
                 # 取出status，需在这一步定位全局变量，作为是否绘制障碍物的标志
-                global status
                 global num_boxes
                 global boxes
                 status  = news[0]
                 if status:
-                    
                     num_boxes = news[1]
                     l = list(news[4:])
                     print('l长度为',len(l))
@@ -80,9 +80,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                     boxes=[l[i:i + n] for i in range(0, len(l), n)]
                     print("receive boxes成功, boxes为",boxes)
                     print('num_boxes为',num_boxes)
-                else:
-                    status = 0
-            time.sleep(1)
+            else:
+                status = 0
 
     def finish(self):
         print('client is disconnected')
@@ -173,16 +172,18 @@ def test_lanenet_one_img(model, frame):
 
     ## TODO draw line
     print("********",status)
+    
+    # draw object box. draw_boxes()
     if status:
-        # draw object box. draw_boxes()
         if num_boxes > 0:
             if boxes is not None:
                 print('进入画框选择')
-                for box in boxes[:num_boxes]:
+                for box in boxes[:int(num_boxes)]:
                     # x1,x2 为左上角  y1 y2为右下角
                     # draw box
                     print(box)
-                    cv2.rectangle(mask_image, (int(box[0]), int(box[1])), (int(box[0]-box[2]), int(box[1]-box[3])), (0, 0, 255), 2)
+                    if box[0] or box[1] or box[2] or box[3]:
+                        cv2.rectangle(mask_image, (int(box[0]), int(box[1])), (int(box[0]-box[2]), int(box[1]-box[3])), (0, 0, 255), 2)
 
     print(instance_pred.shape)
     for i in range(3):
