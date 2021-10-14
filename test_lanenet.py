@@ -28,7 +28,7 @@ from model.utils import lanenet_cluster
 # from model.utils import lanenet_postprocess
 from local_utils.lanenet_bineary_process import get_binearycontour
 
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import glog as log
 import time
 

@@ -33,9 +33,49 @@ from model.utils import lanenet_cluster
 # from model.utils import lanenet_postprocess
 # import matplotlib.pyplot as plt
 
+import socketserver
+import struct
+import threading
+
+
 FPS = 25
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+HOST, PORT = "127.0.0.1", 8200
+
+class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
+  
+
+    def setup(self):
+        ip = self.client_address[0].strip()     # 获取客户端的ip
+        port = self.client_address[1]           # 获取客户端的port
+        print(ip+":"+str(port)+" is connect!")
+
+    def handle(self):
+        
+        self.data = self.request.recv(1024).strip()
+        # cur_thread = threading.current_thread()
+        # print(cur_thread)
+        # print(self.data)
+        news = struct.unpack('ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', self.data)
+        #print(news)
+        # print(type(news))  # is tuple
+        # 取出数据
+        status  = news[0]
+        if status:
+            num_boxes = news[1]
+            l = list(news[2:])
+            # 拆分boxes
+            n = 4
+            boxes=[l[i:i + n] for i in range(0, len(l), n)]
+            print("receive boxes成功, boxes为",boxes)
+
+    def finish(self):
+        print('client is disconnected')
+
+class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+    pass
+        
 
 # def load_test_data(img_path, transform):
 #     img = Image.open(img_path)
@@ -178,6 +218,10 @@ def process_video(model, rtsp_url, output_path):
             continue
         # 帧处理
         out = test_lanenet_one_img(model, frame)
+        # TODO server端
+        # if status_ok:
+        #     out=drawbox()
+
         # print(out)
         # cv2.namedWindow('out_img', cv2.WINDOW_NORMAL)
         # cv2.resizeWindow('out_img', 1024, 756)
@@ -199,6 +243,18 @@ def process_video(model, rtsp_url, output_path):
 if __name__ == "__main__":
     args = parse_args()
     model = load_model(args.model, args.model_type, args.backend)
+    print("listening")
+   # server = socketserver.ThreadingTCPServer((HOST, PORT), MyTCPHandler)
+    server = ThreadedTCPServer((HOST, PORT), ThreadedTCPRequestHandler)
+    #ip, port = server.server_address
+
+    # Start a thread with the server -- that thread will then start one
+    # more thread for each request
+    server_thread = threading.Thread(target=server.serve_forever)
+    # # # Exit the server thread when the main thread terminates
+    server_thread.daemon = False
+    server_thread.start()
+    print("Server loop running in thread:", server_thread.name)
     process_video(model=model, rtsp_url=args.rtsp_url, output_path=args.output_path)
     if args.model == "Image":
         pass
