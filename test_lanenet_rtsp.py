@@ -42,12 +42,11 @@ import time
 FPS = 25
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-HOST, PORT = "127.0.0.1", 8200
+HOST, PORT = "127.0.0.1", 7000
 
 
 status = 0
 num_boxes = 0
-print('status被重置')
 
 class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
@@ -62,7 +61,6 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             # cur_thread = threading.current_thread()
             # print(cur_thread)
             # print(self.data)
-            global status
             if self.data:
                 news = struct.unpack('ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', self.data)
                 #print(news)
@@ -70,6 +68,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                 # 取出status，需在这一步定位全局变量，作为是否绘制障碍物的标志
                 global num_boxes
                 global boxes
+                global status
                 status  = news[0]
                 if status:
                     num_boxes = news[1]
@@ -80,8 +79,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                     boxes=[l[i:i + n] for i in range(0, len(l), n)]
                     print("receive boxes成功, boxes为",boxes)
                     print('num_boxes为',num_boxes)
-            else:
-                status = 0
+            # else:
+            #     status = 0
 
     def finish(self):
         print('client is disconnected')
@@ -173,6 +172,7 @@ def test_lanenet_one_img(model, frame):
     ## TODO draw line
     print("********",status)
     
+    
     # draw object box. draw_boxes()
     if status:
         if num_boxes > 0:
@@ -182,8 +182,7 @@ def test_lanenet_one_img(model, frame):
                     # x1,x2 为左上角  y1 y2为右下角
                     # draw box
                     print(box)
-                    if box[0] or box[1] or box[2] or box[3]:
-                        cv2.rectangle(mask_image, (int(box[0]), int(box[1])), (int(box[0]-box[2]), int(box[1]-box[3])), (0, 0, 255), 2)
+                    cv2.rectangle(mask_image, (int(box[0]), int(box[1])), (int(box[0]-box[2]), int(box[1]-box[3])), (255, 0, 0), 2)
 
     print(instance_pred.shape)
     for i in range(3):
@@ -274,7 +273,6 @@ if __name__ == "__main__":
     print("listening")
    # server = socketserver.ThreadingTCPServer((HOST, PORT), MyTCPHandler)
     server = ThreadedTCPServer((HOST, PORT), ThreadedTCPRequestHandler)
-    print('当前status',status)
     #ip, port = server.server_address
 
     # Start a thread with the server -- that thread will then start one
