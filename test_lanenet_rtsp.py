@@ -37,6 +37,7 @@ import socketserver
 import struct
 import threading
 import time
+from PIL import Image, ImageDraw
 
 
 FPS = 25
@@ -172,6 +173,7 @@ def test_lanenet_one_img(model, frame):
     ## TODO draw line
     print("********",status)
     # draw object box. draw_boxes()
+    draw_image = cv2.cvtColor(mask_image, cv2.COLOR_BGR2RGB)
     if status:
         if num_boxes > 0:
             if boxes is not None:
@@ -180,8 +182,16 @@ def test_lanenet_one_img(model, frame):
                     # x1,x2 为左上角  y1 y2为右下角
                     # draw box
                     print(box)
-                    cv2.rectangle(frame, (int(box[0]), int(box[1])), (int(box[0]-box[2]), int(box[1]-box[3])), (255, 0, 0), 2)
-        cv2.imwrite('filename.png', frame)
+                    x1 = int(box[0])
+                    y1 = int(box[1])
+                    x2 = int(box[0]-box[2])
+                    y2 = int(box[1]-box[3])
+
+                    cv2.rectangle(draw_image, (x1, y1), (x2, y2), (0, 0, 255), 0)
+                    #draw = ImageDraw.Draw(Image.fromarray(mask_image))
+                    #draw.rectangle((x1,y1,x1,y2) ,outline=(255,0,0))
+                
+        cv2.imwrite('filename.png',draw_image)
 
     print(instance_pred.shape)
     for i in range(3):
@@ -224,7 +234,7 @@ def test_lanenet_one_img(model, frame):
     # plt.figure('embedding')
     # plt.imshow(embedding_image)
     # plt.show()
-    return mask_image
+    return draw_image
 
 
 def process_video(model, rtsp_url, output_path):
