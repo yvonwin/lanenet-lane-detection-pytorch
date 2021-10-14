@@ -173,7 +173,7 @@ def test_lanenet_one_img(model, frame):
     ## TODO draw line
     print("********",status)
     # draw object box. draw_boxes()
-    draw_image = cv2.cvtColor(mask_image, cv2.COLOR_BGR2RGB)
+    draw_mask=cv2.cvtColor(mask_image, cv2.COLOR_RGB2BGR) 
     if status:
         if num_boxes > 0:
             if boxes is not None:
@@ -186,12 +186,18 @@ def test_lanenet_one_img(model, frame):
                     y1 = int(box[1])
                     x2 = int(box[0]-box[2])
                     y2 = int(box[1]-box[3])
-
-                    cv2.rectangle(draw_image, (x1, y1), (x2, y2), (0, 0, 255), 0)
-                    #draw = ImageDraw.Draw(Image.fromarray(mask_image))
+                    ## todo 放缩坐标
+                    cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 0)
+                    x1 = x1/(704/512)
+                    y1 = y1/(576/256)
+                    x2 = x2/(704/512)
+                    y2 = y2/(576/256)
+                    cv2.rectangle(draw_mask, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 0)
+                    
+                    # draw = ImageDraw.Draw(Image.fromarray(draw_image))
                     #draw.rectangle((x1,y1,x1,y2) ,outline=(255,0,0))
-                
-        cv2.imwrite('filename.png',draw_image)
+        cv2.imwrite('draw_frame.png', frame)
+        cv2.imwrite('draw_mask.png',draw_mask)
 
     print(instance_pred.shape)
     for i in range(3):
@@ -234,7 +240,7 @@ def test_lanenet_one_img(model, frame):
     # plt.figure('embedding')
     # plt.imshow(embedding_image)
     # plt.show()
-    return draw_image
+    return draw_mask
 
 
 def process_video(model, rtsp_url, output_path):
