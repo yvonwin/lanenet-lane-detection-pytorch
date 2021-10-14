@@ -180,7 +180,8 @@ def test_lanenet_one_img(model, frame):
                     # x1,x2 为左上角  y1 y2为右下角
                     # draw box
                     print(box)
-                    cv2.rectangle(mask_image, (int(box[0]), int(box[1])), (int(box[0]-box[2]), int(box[1]-box[3])), (255, 0, 0), 2)
+                    cv2.rectangle(frame, (int(box[0]), int(box[1])), (int(box[0]-box[2]), int(box[1]-box[3])), (255, 0, 0), 2)
+        cv2.imwrite('filename.png', frame)
 
     print(instance_pred.shape)
     for i in range(3):
