@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-10-13 14:52:33
-LastEditTime: 2021-10-13 19:36:52
+LastEditTime: 2021-10-14 14:19:23
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: /CPHONE/opencv-socket_zhongche_test/serve.py
@@ -21,22 +21,23 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
     def handle(self):
         
-        self.data = self.request.recv(1024).strip()
-        # cur_thread = threading.current_thread()
-        # print(cur_thread)
-        # print(self.data)
-        news = struct.unpack('ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', self.data)
-        #print(news)
-        # print(type(news))  # is tuple
-        # 取出数据
-        status  = news[0]
-        if status:
-            num_boxes = news[1]
-            l = list(news[2:])
-            # 拆分boxes
-            n = 4
-            boxes=[l[i:i + n] for i in range(0, len(l), n)]
-            print("receive boxes成功, boxes为",boxes)
+        while True:
+            self.data = self.request.recv(1024).strip()
+            # cur_thread = threading.current_thread()
+            # print(cur_thread)
+            # print(self.data)
+            news = struct.unpack('ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', self.data)
+            #print(news)
+            # print(type(news))  # is tuple
+            # 取出数据
+            status  = news[0]
+            if status:
+                num_boxes = news[1]
+                l = list(news[2:])
+                # 拆分boxes
+                n = 4
+                boxes=[l[i:i + n] for i in range(0, len(l), n)]
+                print("receive boxes成功, boxes为",boxes)
 
     def finish(self):
         print('client is disconnected')
