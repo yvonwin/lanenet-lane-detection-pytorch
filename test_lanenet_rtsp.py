@@ -171,8 +171,6 @@ def test_lanenet_one_img(model, frame):
 
     ## TODO draw line
     print("********",status)
-    
-    
     # draw object box. draw_boxes()
     if status:
         if num_boxes > 0:
@@ -210,7 +208,7 @@ def test_lanenet_one_img(model, frame):
             np.hstack([instance_pred * 255, bin_image * 255]),
         ]
     )
-    cv2.imshow("out_all", out_all)
+    # cv2.imshow("out_all", out_all)
 
     # cv2.imwrite(os.path.join(save_dir, 'input_' + img_name), input)
     # cv2.imwrite(os.path.join(save_dir, 'result_' + img_name), mask_image)
@@ -256,8 +254,8 @@ def process_video(model, rtsp_url, output_path):
 
         # cv2.namedWindow('out_img', cv2.WINDOW_NORMAL)
         # cv2.resizeWindow('out_img', 1280, 720)
-        cv2.imshow("out_img", out)
-        # cv2.imwrite('./test.jpg', out)
+        # cv2.imshow("out_img", out)
+        cv2.imwrite('./test.jpg', out)
         # TODO 保存视频
         # output_video.write(out)
 
