@@ -43,8 +43,11 @@ DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 HOST, PORT = "127.0.0.1", 8200
 
+
+status = 0
+print('status被重置')
+
 class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
-  
 
     def setup(self):
         ip = self.client_address[0].strip()     # 获取客户端的ip
@@ -52,23 +55,31 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         print(ip+":"+str(port)+" is connect!")
 
     def handle(self):
-        
-        self.data = self.request.recv(1024).strip()
-        # cur_thread = threading.current_thread()
-        # print(cur_thread)
-        # print(self.data)
-        news = struct.unpack('ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', self.data)
-        #print(news)
-        # print(type(news))  # is tuple
-        # 取出数据
-        status  = news[0]
-        if status:
-            num_boxes = news[1]
-            l = list(news[2:])
-            # 拆分boxes
-            n = 4
-            boxes=[l[i:i + n] for i in range(0, len(l), n)]
-            print("receive boxes成功, boxes为",boxes)
+        while True:
+            self.data = self.request.recv(336).strip()
+            # cur_thread = threading.current_thread()
+            # print(cur_thread)
+            # print(self.data)
+            if self.data:
+                news = struct.unpack('ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', self.data)
+                #print(news)
+                # print(type(news))  # is tuple
+                # 取出status，需在这一步定位全局变量，作为是否绘制障碍物的标志
+                global status
+                global num_boxes
+                global boxes
+                status  = news[0]
+                if status:
+                    
+                    num_boxes = news[1]
+                    l = list(news[4:])
+                    print('l长度为',len(l))
+                    # 拆分boxes
+                    n = 4
+                    boxes=[l[i:i + n] for i in range(0, len(l), n)]
+                    print("receive boxes成功, boxes为",boxes)
+                else:
+                    status = 0
 
     def finish(self):
         print('client is disconnected')
@@ -155,6 +166,20 @@ def test_lanenet_one_img(model, frame):
     mask_image, _, _, _ = cluster.get_lane_mask(
         instance_seg_ret=instance_pred, binary_seg_ret=binary_pred, gt_image=input
     )
+    # todo 筛选
+
+    ## TODO draw line
+    print("********",status)
+    if status:
+        # draw object box. draw_boxes()
+        if num_boxes > 0:
+            if boxes is not None:
+                print('进入画框选择')
+                for box in boxes:
+                    # x1,x2 为左上角  y1 y2为右下角
+                    # draw box
+                    cv2.rectangle(mask_image, (box[0], box[1]), (box[0]-box[3], box[1]-box[4]), (0, 0, 255), 2)
+
     print(instance_pred.shape)
     for i in range(3):
         instance_pred[:, :, i] = minmax_scale(instance_pred[:, :, i])
@@ -218,9 +243,6 @@ def process_video(model, rtsp_url, output_path):
             continue
         # 帧处理
         out = test_lanenet_one_img(model, frame)
-        # TODO server端
-        # if status_ok:
-        #     out=drawbox()
 
         # print(out)
         # cv2.namedWindow('out_img', cv2.WINDOW_NORMAL)
@@ -243,9 +265,11 @@ def process_video(model, rtsp_url, output_path):
 if __name__ == "__main__":
     args = parse_args()
     model = load_model(args.model, args.model_type, args.backend)
+ 
     print("listening")
    # server = socketserver.ThreadingTCPServer((HOST, PORT), MyTCPHandler)
     server = ThreadedTCPServer((HOST, PORT), ThreadedTCPRequestHandler)
+    print('当前status',status)
     #ip, port = server.server_address
 
     # Start a thread with the server -- that thread will then start one
