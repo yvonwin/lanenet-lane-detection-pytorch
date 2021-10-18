@@ -165,9 +165,11 @@ def test_lanenet_one_img(model, frame):
     start_time = time.time()
     binary_pred = get_binearycontour(binary_pred)  # 修改bineary图像处理使用
     print("binerycontour处理时间为：", time.time() - start_time)
+    cluster_start_time = time.time()
     mask_image, _, _, _ = cluster.get_lane_mask(
         instance_seg_ret=instance_pred, binary_seg_ret=binary_pred, gt_image=input
     )
+    print("cluster处理时间为：", time.time() - cluster_start_time)
     # TODO get left_lines, right_lines
     
 
