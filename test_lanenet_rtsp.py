@@ -145,8 +145,9 @@ def test_lanenet_one_img(model, frame):
     dummy_input = dummy_input.to(DEVICE)
 
     dummy_input = torch.unsqueeze(dummy_input, dim=0)
+    infer_start_time = time.time()
     outputs = model(dummy_input)
-
+    print("infer time: ", time.time() - infer_start_time)
     # input = Image.open(img_path)
     input = input.resize((resize_width, resize_height))
     input = np.array(input)
