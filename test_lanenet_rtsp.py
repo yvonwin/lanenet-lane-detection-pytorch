@@ -80,8 +80,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                     boxes=[l[i:i + n] for i in range(0, len(l), n)]
                     print("receive boxes成功, boxes为",boxes)
                     print('num_boxes为',num_boxes)
-            # else:
-            #     status = 0
+            else:
+                status = 0
 
     def finish(self):
         print('client is disconnected')
@@ -94,7 +94,6 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
 #     img = Image.open(img_path)
 #     img = transform(img)
 #     return img
-
 
 def load_model(model_path, model_type, backend):
     model = LaneNet(arch=model_type, backend=backend)
@@ -168,9 +167,9 @@ def test_lanenet_one_img(model, frame):
     mask_image, _, _, _ = cluster.get_lane_mask(
         instance_seg_ret=instance_pred, binary_seg_ret=binary_pred, gt_image=input
     )
-    # todo 筛选
+    # TODO get left_lines, right_lines
+    
 
-    ## TODO draw line
     print("********",status)
     # draw object box. draw_boxes()
     draw_mask=cv2.cvtColor(mask_image, cv2.COLOR_RGB2BGR) 
@@ -186,12 +185,17 @@ def test_lanenet_one_img(model, frame):
                     y1 = int(box[1])
                     x2 = int(box[0]-box[2])
                     y2 = int(box[1]-box[3])
-                    ## todo 放缩坐标
+                    ##  放缩坐标
                     cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 0)
                     x1 = x1/(704/512)
                     y1 = y1/(576/256)
                     x2 = x2/(704/512)
                     y2 = y2/(576/256)
+                    # TODO 筛选
+                    # 思路 根据聚类出来的点作为边界点进行判断。
+                    # 判断障碍物的边界点是否在车道线上。
+                    # 如果在车道线上，则认为是障碍物。 我打算用先拿box的顶点坐标取y 判断是否在x1和x2之间
+                    
                     cv2.rectangle(draw_mask, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 0)
                     
                     # draw = ImageDraw.Draw(Image.fromarray(draw_image))
@@ -217,14 +221,14 @@ def test_lanenet_one_img(model, frame):
     #     ]
     # )
     # 修改归一化，便于imread
-    out_all = np.vstack(
-        [
-            np.hstack(
-                [cv2.cvtColor(input, cv2.COLOR_RGB2BGR) / 255.0, cv2.cvtColor(mask_image, cv2.COLOR_RGB2BGR) / 255.0]
-            ),
-            np.hstack([instance_pred * 255, bin_image * 255]),
-        ]
-    )
+    # out_all = np.vstack(
+    #     [
+    #         np.hstack(
+    #             [cv2.cvtColor(input, cv2.COLOR_RGB2BGR) / 255.0, cv2.cvtColor(mask_image, cv2.COLOR_RGB2BGR) / 255.0]
+    #         ),
+    #         np.hstack([instance_pred * 255, bin_image * 255]),
+    #     ]
+    # )
     # cv2.imshow("out_all", out_all)
 
     # cv2.imwrite(os.path.join(save_dir, 'input_' + img_name), input)
@@ -261,8 +265,10 @@ def process_video(model, rtsp_url, output_path):
         if not ok:
             continue
         # 帧处理
+        # time1
+        start_time1 = time.time()
         out = test_lanenet_one_img(model, frame)
-
+        print('test_lanenet_oneimg use time:', time.time() - start_time1)
         # print(out)
         # cv2.namedWindow('out_img', cv2.WINDOW_NORMAL)
         # cv2.resizeWindow('out_img', 1024, 756)
