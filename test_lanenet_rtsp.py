@@ -200,17 +200,17 @@ def test_lanenet_one_img(model, frame):
                     
                     # draw = ImageDraw.Draw(Image.fromarray(draw_image))
                     #draw.rectangle((x1,y1,x1,y2) ,outline=(255,0,0))
-        cv2.imwrite('draw_frame.png', frame)
-        cv2.imwrite('draw_mask.png',draw_mask)
+    #    cv2.imwrite('draw_frame.png', frame)
+    #    cv2.imwrite('draw_mask.png',draw_mask)
 
-    print(instance_pred.shape)
-    for i in range(3):
-        instance_pred[:, :, i] = minmax_scale(instance_pred[:, :, i])
+    #print(instance_pred.shape)
+    #for i in range(3):
+    #    instance_pred[:, :, i] = minmax_scale(instance_pred[:, :, i])
     # embedding_image = np.array(instance_pred, np.uint8)
 
     # 拓展binary_pred通道 方便可视化
-    bin_image = np.expand_dims(binary_pred, axis=2)
-    bin_image = np.concatenate((bin_image, bin_image, bin_image), axis=-1)
+    # bin_image = np.expand_dims(binary_pred, axis=2)
+    # bin_image = np.concatenate((bin_image, bin_image, bin_image), axis=-1)
     # 结果可视化 imwrite使用
     # out_all = np.vstack(
     #     [
