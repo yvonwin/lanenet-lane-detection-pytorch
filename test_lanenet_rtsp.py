@@ -173,38 +173,43 @@ def test_lanenet_one_img(model, frame):
     # TODO get left_lines, right_lines
     
 
-    print("********",status)
+    print("**staus ok!**",status)
     # draw object box. draw_boxes()
     draw_mask=cv2.cvtColor(mask_image, cv2.COLOR_RGB2BGR) 
     if status:
         if num_boxes > 0:
+            # TODO 筛选
+            # 思路 根据聚类出来的点作为边界点进行判断。
+            # 判断障碍物的边界点是否在车道线上。
+            # 如果在车道线上，则认为是障碍物。 我打算用先拿box的顶点坐标取y 判断是否在x1和x2之间
+            # 1. get box顶点坐标, 这一步有点麻烦，因为是一个点集，先简化问题，取顶点。
+            # 2. 判断是否在x1和x2之间，如果不再 remove box。这一部分主要是车道的限界问题。
+            # 3. 如果在，则认为是障碍物。
             if boxes is not None:
                 print('进入画框选择')
                 for box in boxes[:int(num_boxes)]:
                     # x1,x2 为左上角  y1 y2为右下角
-                    # draw box
-                    print(box)
+                    #print(box)
+                    # 原始的size
                     x1 = int(box[0])
                     y1 = int(box[1])
                     x2 = int(box[0]-box[2])
                     y2 = int(box[1]-box[3])
                     ##  放缩坐标
                     cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 0)
+                    # resize box
                     x1 = x1/(704/512)
                     y1 = y1/(576/256)
                     x2 = x2/(704/512)
                     y2 = y2/(576/256)
-                    # TODO 筛选
-                    # 思路 根据聚类出来的点作为边界点进行判断。
-                    # 判断障碍物的边界点是否在车道线上。
-                    # 如果在车道线上，则认为是障碍物。 我打算用先拿box的顶点坐标取y 判断是否在x1和x2之间
-                    
+                
                     cv2.rectangle(draw_mask, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 0)
                     
                     # draw = ImageDraw.Draw(Image.fromarray(draw_image))
                     #draw.rectangle((x1,y1,x1,y2) ,outline=(255,0,0))
     #    cv2.imwrite('draw_frame.png', frame)
     #    cv2.imwrite('draw_mask.png',draw_mask)
+    cv2.imshow('draw_mask', draw_mask)
 
     #print(instance_pred.shape)
     #for i in range(3):
@@ -294,18 +299,22 @@ if __name__ == "__main__":
     args = parse_args()
     model = load_model(args.model, args.model_type, args.backend)
  
-    print("listening")
+    print("start listening")
    # server = socketserver.ThreadingTCPServer((HOST, PORT), MyTCPHandler)
     server = ThreadedTCPServer((HOST, PORT), ThreadedTCPRequestHandler)
     #ip, port = server.server_address
 
     # Start a thread with the server -- that thread will then start one
     # more thread for each request
-    server_thread = threading.Thread(target=server.serve_forever)
-    # # # Exit the server thread when the main thread terminates
-    server_thread.daemon = False
-    server_thread.start()
-    print("Server loop running in thread:", server_thread.name)
+    try:
+        server_thread = threading.Thread(target=server.serve_forever)
+        # # # Exit the server thread when the main thread terminates
+        server_thread.daemon = False
+        server_thread.start()
+        print("Server loop running in thread:", server_thread.name)
+    except KeyboardInterrupt:
+        server_thread.shutdown()
+        server_thread.socket.close()
     process_video(model=model, rtsp_url=args.rtsp_url, output_path=args.output_path)
     if args.model == "Image":
         pass
