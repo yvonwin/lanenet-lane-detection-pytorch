@@ -39,17 +39,37 @@ import threading
 import time
 from PIL import Image, ImageDraw
 
+"""读取rtsp流并处理图片
+读取相机rtsp流，并且处理作为socket通信服务器，处理图片。
+Todo:
+标准化： 考虑异常情况
+异常情况汇总:
+1. 未检测到rtsp流 增加了报错，但是要全部退出程序，还需要close掉server端 已解决 目前策略，一开始没检测到rtsp流，就直接退出。 done. 11.23在工控机下测试发现bug.在虚拟机中开机rtsp流，但是还是get到异常，暂时改回去了。
+2. 后续可能相机突然断流，也需要异常关闭. 这个比较容易实现 看需要的时候再实现
+3. 异常关闭后自启. 非此程序内部逻辑，需要脚本检查控制： 目前初步思路是查看端口占用，如果端口占用，什么都不做，如果没占用，重启程序。
+4. opencv需要3.4.0版本，安装4.0版本会报错，后处理阶段有个函数接口有变化。
+
+功能完善：
+1. 功能聚合。车道与障碍物检测融合.
+2. 稳定性测试 
+
+
+"""
 
 FPS = 25
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
-HOST, PORT = "127.0.0.1", 7000
+HOST, PORT = "127.0.0.1", 8000
 
 
 status = 0
 num_boxes = 0
+rtsp_status = 1
 
 class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
+    """通信模块使用socketserver异步监听，每次接收到数据后，调用handle方法，绘制激光雷达数据。
+    Args:
+        socketserver ([type]): [description]
+    """
 
     def setup(self):
         ip = self.client_address[0].strip()     # 获取客户端的ip
@@ -64,7 +84,6 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             # print(self.data)
             if self.data:
                 news = struct.unpack('ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', self.data)
-                #print(news)
                 # print(type(news))  # is tuple
                 # 取出status，需在这一步定位全局变量，作为是否绘制障碍物的标志
                 global num_boxes
@@ -173,9 +192,11 @@ def test_lanenet_one_img(model, frame):
     # TODO get left_lines, right_lines
     
 
-    print("**staus ok!**",status)
+    print("**status ok!**",status)
     # draw object box. draw_boxes()
     draw_mask=cv2.cvtColor(mask_image, cv2.COLOR_RGB2BGR) 
+    # 在无障碍物下展示
+    cv2.imshow('draw_mask', draw_mask)
     if status:
         if num_boxes > 0:
             # TODO 筛选
@@ -195,21 +216,21 @@ def test_lanenet_one_img(model, frame):
                     y1 = int(box[1])
                     x2 = int(box[0]-box[2])
                     y2 = int(box[1]-box[3])
-                    ##  放缩坐标
+                    # 画原始帧，方便观测效果
                     cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 0)
+                    ##  放缩坐标
                     # resize box
                     x1 = x1/(704/512)
                     y1 = y1/(576/256)
                     x2 = x2/(704/512)
                     y2 = y2/(576/256)
-                
+                    # 画放缩帧，方便观测效果
                     cv2.rectangle(draw_mask, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 0)
-                    
                     # draw = ImageDraw.Draw(Image.fromarray(draw_image))
                     #draw.rectangle((x1,y1,x1,y2) ,outline=(255,0,0))
     #    cv2.imwrite('draw_frame.png', frame)
     #    cv2.imwrite('draw_mask.png',draw_mask)
-    cv2.imshow('draw_mask', draw_mask)
+        cv2.imshow('draw_mask', draw_mask)
 
     #print(instance_pred.shape)
     #for i in range(3):
@@ -257,46 +278,51 @@ def test_lanenet_one_img(model, frame):
 
 def process_video(model, rtsp_url, output_path):
     rtscap = RTSCapture.create(rtsp_url)
-    rtscap.start_read()
-    # framewidth = rtscap.get(cv2.CAP_PROP_FRAME_WIDTH)
-    # frameheight = rtscap.get(
-    #    cv2.CAP_PROP_FRAME_HEIGHT)  # 图像横轴中心点（宽度）   #图像纵轴中心点（高度）ßß
-    # out_videofile = output_path + '_test.mp4'
-    # fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
-    # output_video = cv2.VideoWriter(out_videofile, fourcc, FPS,
-    #                               (int(framewidth), int(frameheight)))
-    print("start to write video")
-    while rtscap.isStarted():
-        ok, frame = rtscap.read_latest_frame()  # read_latest_frame() 替代 read() 此时取到的为最新的帧
-        if cv2.waitKey(100) & 0xFF == ord("q"):
-            break
-        if not ok:
-            continue
-        # 帧处理
-        # time1
-        start_time1 = time.time()
-        out = test_lanenet_one_img(model, frame)
-        print('test_lanenet_oneimg use time:', time.time() - start_time1)
-        # print(out)
-        # cv2.namedWindow('out_img', cv2.WINDOW_NORMAL)
-        # cv2.resizeWindow('out_img', 1024, 756)
+    if rtscap:
+        rtscap.start_read()
+        # framewidth = rtscap.get(cv2.CAP_PROP_FRAME_WIDTH)
+        # frameheight = rtscap.get(
+        #    cv2.CAP_PROP_FRAME_HEIGHT)  # 图像横轴中心点（宽度）   #图像纵轴中心点（高度）ßß
+        # out_videofile = output_path + '_test.mp4'
+        # fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
+        # output_video = cv2.VideoWriter(out_videofile, fourcc, FPS,
+        #                               (int(framewidth), int(frameheight)))
+        print("start to write video")
+        while rtscap.isStarted():
+            ok, frame = rtscap.read_latest_frame()  # read_latest_frame() 替代 read() 此时取到的为最新的帧
+            if cv2.waitKey(100) & 0xFF == ord("q"):
+                break
+            if not ok:
+                continue
+            # 帧处理
+            # time1
+            start_time1 = time.time()
+            out = test_lanenet_one_img(model, frame)
+            print('test_lanenet_oneimg use time:', time.time() - start_time1)
+            # print(out)
+            # cv2.namedWindow('out_img', cv2.WINDOW_NORMAL)
+            # cv2.resizeWindow('out_img', 1024, 756)
 
-        # cv2.imshow("out_img", out)
+            # cv2.imshow("out_img", out)
 
-        # cv2.namedWindow('out_img', cv2.WINDOW_NORMAL)
-        # cv2.resizeWindow('out_img', 1280, 720)
-        # cv2.imshow("out_img", out)
-        cv2.imwrite('./test.jpg', out)
-        # TODO 保存视频
-        # output_video.write(out)
+            # cv2.namedWindow('out_img', cv2.WINDOW_NORMAL)
+            # cv2.resizeWindow('out_img', 1280, 720)
+            # cv2.imshow("out_img", out)
+            cv2.imwrite('./test.jpg', out)
+            # TODO 保存视频
+            # output_video.write(out)
 
-    rtscap.stop_read()
-    rtscap.release()
-    cv2.destroyAllWindows()
+        rtscap.stop_read()
+        rtscap.release()
+        cv2.destroyAllWindows()
+    else:
+        global rtsp_status
+        rtsp_status = 0
 
 
 if __name__ == "__main__":
     args = parse_args()
+    # 加载模型
     model = load_model(args.model, args.model_type, args.backend)
  
     print("start listening")
@@ -312,9 +338,15 @@ if __name__ == "__main__":
         server_thread.daemon = False
         server_thread.start()
         print("Server loop running in thread:", server_thread.name)
+    # ctrlc 退出时关闭线程
     except KeyboardInterrupt:
-        server_thread.shutdown()
-        server_thread.socket.close()
+        server.shutdown()
+        server.server_close()
+    # 循环处理接收的图片
     process_video(model=model, rtsp_url=args.rtsp_url, output_path=args.output_path)
-    if args.model == "Image":
-        pass
+    if not rtsp_status:
+        server.shutdown()
+        server.server_close()
+        print("server closed")
+    # if args.model == "Image":
+    #     pass

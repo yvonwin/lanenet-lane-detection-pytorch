@@ -4,8 +4,10 @@ import numpy as np
 
 # 求最大连通域的中心点坐标
 def centroid(max_contour):
+    # 得到图像的距
     moment = cv2.moments(max_contour)
     if moment["m00"] != 0:
+        # 计算重心
         cx = int(moment["m10"] / moment["m00"])
         cy = int(moment["m01"] / moment["m00"])
         return cx, cy

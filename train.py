@@ -37,7 +37,10 @@ DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 def train():
+    """训练模型
+    """
     args = parse_args()
+    # 日志信息记录
     LOG = init_logger.get_logger(log_file_name_prefix="lanenet_train")
     LOG.info("use model_type %s" % args.model_type)
     LOG.info("use backend %s" % args.backend)
@@ -50,6 +53,7 @@ def train():
     # LOG.info('set epochs %s' % str(args.epochs))
     LOG.info("resize image_width is:%s, image_height is:%s\n" % (args.width, args.height))
     save_path = args.save
+    # 如果不存在则创建保存模型路径
     if not os.path.isdir(save_path):
         os.makedirs(save_path)
 
@@ -60,6 +64,7 @@ def train():
     resize_width = args.width
 
     # 数据预处理
+    # 使用数据增强
     if args.use_aug:
         data_transforms = {
             "train": transforms.Compose(
@@ -82,6 +87,7 @@ def train():
                 ]
             ),
         }
+    # 不使用数据增强
     else:
         data_transforms = {
             "train": transforms.Compose(
@@ -129,7 +135,7 @@ def train():
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
     LOG.info(f"{args.epochs} epochs {len(train_dataset)} training samples")
 
-    # 设置scheduler.
+    # 设置scheduler，使用余弦退火算法
     # scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer,milestones = [30,80], gamma=0.5, last_epoch=-1)
     # scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer,
     #  mode='max', factor=0.5, patience=5, verbose=True)
@@ -146,7 +152,6 @@ def train():
         num_epochs=args.epochs,
     )
 
-    # 保存模型 训练完保存模型。
     save_time = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime(time.time()))
     if args.model_type == "DeepLabv3+":
         model_save_filename = os.path.join(
@@ -157,7 +162,7 @@ def train():
         model_save_filename = os.path.join(
             save_path, save_time + "_epochs" + str(args.epochs) + "_" + args.model_type + "_" + "_best_model.pth"
         )
-
+    # 保存模型
     torch.save(model.state_dict(), model_save_filename)
     LOG.info("model is saved: {}".format(model_save_filename))
     LOG.info("Complete training process good luck!!")

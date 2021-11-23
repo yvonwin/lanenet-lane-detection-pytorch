@@ -201,6 +201,7 @@ class LaneNetCluster(object):
             #         int(self._color_map[index][2]))
             color = (0, 255, 0)
             coord = np.array(coord)
+            #print(coord.shape)
             mask_image[coord[:, 0], coord[:, 1], :] = color
         return mask_image, lane_coordinate, cluster_index, labels
 
