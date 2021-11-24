@@ -85,7 +85,9 @@ def get_binearycontour(binaryimg):
     """
     contours = []
     binaryimg = binaryimg.astype(np.uint8)
+    # opecv3
     _, contours, hierarchy = cv2.findContours(binaryimg, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # opencv4
     # contours, hierarchy = cv2.findContours(binaryimg, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     b_contournum = len(contours)
     # print("number of contours:%d" % b_contournum)
