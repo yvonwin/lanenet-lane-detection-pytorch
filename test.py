@@ -1,11 +1,3 @@
-"""
-Author: your name
-Date: 2021-08-03 16:30:37
-LastEditTime: 2021-08-26 16:25:56
-LastEditors: Please set LastEditors
-Description: In User Settings Edit
-FilePath: ~/Mac_Workspaces/lanenet-lane-detection-pytorch/test.py
-"""
 # import time
 import os
 
@@ -31,6 +23,8 @@ from PIL import Image
 # import pandas as pd
 import cv2
 from model.utils import lanenet_cluster
+
+"""测试单张图片"""
 
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 

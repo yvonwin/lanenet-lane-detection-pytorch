@@ -1,29 +1,50 @@
-# Lanenet-Lane-Detection (pytorch version)
-  
-[中文版](https://github.com/IrohXu/lanenet-lane-detection-pytorch/blob/main/CHINESE_README.md)  
+# Lanenet-Lane-Detection (基于pytorch的版本)
 
-## Introduction   
-Use pytorch to implement a Deep Neural Network for real time lane detection mainly based on the IEEE IV conference paper "Towards End-to-End Lane Detection: an Instance Segmentation Approach".You can refer to their paper for details https://arxiv.org/abs/1802.05591. This model consists of ENet encoder, ENet decoder for binary semantic segmentation and ENet decoder for instance semantic segmentation using discriminative loss function.  
+[English Version](https://github.com/IrohXu/lanenet-lane-detection-pytorch/blob/main/README.md)    
 
-The main network architecture is:  
+
+## 简介     
+在本项目中，使用pyotrch复现了 IEEE IV conference 的论文 "Towards End-to-End Lane Detection: an Instance Segmentation Approach"，并对这篇论文的思想进行讨论。   
+开发这一项目的初衷是，在github上开源的LaneNet项目数目较少，其中只有基于tensorflow 1.x的项目https://github.com/MaybeShewill-CV/lanenet-lane-detection 能够完整的实现作者论文中的思想，但是随着tensorflow 2.x的出现，基于tensorflow 1.x的项目在未来的维护将会越来越困难，很多刚入门深度学习同学也不熟悉tensorflow 1.x的相关功能。与此同时，github上基于pytorch的几个LaneNet项目或多或少都存在一些错误，例如错误复现Discriminative loss导致实例分割失败，且相关作者已经不再维护。   
+
+LaneNet的网络框架:    
 ![NetWork_Architecture](./data/source_image/network_architecture.png)
 
-## Generate Tusimple training set/validation set/test tet   
-First, download tusimple dataset [here](https://github.com/TuSimple/tusimple-benchmark/issues/3).  
-Then, run the following command to generate the training/ val/ test samples and the train.txt/ val.txt/ test.txt file.   
-Generate training set:  
+## 下载项目
+
+```
+git clone https://github.com/yvonwin/lanenet-lane-detection-pytorch.git
+```
+
+## 安装依赖
+
+到torch官网安装torch 1.6到1.9都可以和torchvision
+
+安装其他依赖
+
+```
+pip installl -r requirements
+```
+
+
+
+## 生成用于训练和测试的Tusimple车道线数据集
+
+在此处下载Tusimple数据集： [Tusimple](https://github.com/TuSimple/tusimple-benchmark/issues/3).  
+运行以下代码生成可以用于训练的数据集形式： 
+仅生成训练集：   
 ```
 python tusimple_transform.py --src_dir path/to/your/unzipped/file --val False
 ```
-Generate training/ val set:  
+生成训练集+验证集:    
 ```
 python tusimple_transform.py --src_dir path/to/your/unzipped/file --val True
 ```
-Generate training/ val/ test set:  
+生成训练集+验证集+测试集:    
 ```
 python tusimple_transform.py --src_dir path/to/your/unzipped/file --val True --test True
 ```
-path/to/your/unzipped/file should like this:  
+path/to/your/unzipped/file应该包含以下文件:    
 ```
 |--dataset
 |----clips
@@ -31,114 +52,99 @@ path/to/your/unzipped/file should like this:
 |----label_data_0531.json
 |----label_data_0601.json
 |----test_label.json
-```  
-
-## Training the model    
-The environment for training and evaluation:  
-```
-python=3.6
-torch>=1.2
-numpy=1.7
-torchvision>=0.4.0
-matplotlib
-opencv-python
-pandas
-```
-Using example folder with ENet:   
-```
-python train.py --dataset ./data/training_data_example
-```
-Using tusimple folder with ENet/Focal loss:   
-```
-python train.py --dataset path/to/tusimpledataset/training
-```
-Using tusimple folder with ENet/Cross Entropy loss:   
-```
-python train.py --dataset path/to/tusimpledataset/training --model_type ENet --loss_type CrossEntropyLoss
-```
-Using tusimple folder with DeepLabv3+:   
-```
-python train.py --dataset path/to/tusimpledataset/training --model_type DeepLabv3+
-```    
-use xception backend
-```
-python train.py --dataset path/to/tusimpledataset/training --model_type DeepLabv3+ --backend xception
 ```
 
-If you want to change focal loss to cross entropy loss, do not forget to adjust the hyper-parameter of instance loss and binary loss in ./model/lanenet/train_lanenet.py    
+## 自定义数据转换成tusimle格式数据
 
-## Testing result    
-A pretrained trained model by myself is located in ./log (only trained in 25 epochs)      
-Test the model:    
+1. 视频转换图片，使用quick cut或ffmpeg或Python脚本皆可
+
+   python脚本为例
+
+   local_utils/videos2pictures.py
+
+2. labelme人工标注
+
+   主要结构分析
+
+   ```
+   ├── v1_1.jpg
+   ├── v1_1.json
+   ```
+
+   使用labelme_json_to_dataset转换单张
+
+   ```
+   labelme_json_to_dataset v1_1.json
+   ```
+
+   会生成一个文件夹名为v1_1_json
+
+   ```
+   (base) ➜  v1_1_json tree
+   .
+   ├── img.png
+   ├── label.png
+   ├── label_names.txt
+   └── label_viz.png
+   ```
+
+   
+
+3. 批量转换json_to_dataset
+
+   local_utils/pipeline.py
+
+4. 转换成tusimple
+
+   local_utils/my_transform.py
+
+   
+
+##	训练模型
+
+在示例的文件夹中运行训练代码，注意，使用示例数据并不能真正训练出可以用的LaneNet，因为示例文件只有6张图像:   
+```
+python train.py --epoch 10 --dataset ./data/training_data_example  --save ./log/log_example --model_type ENet --num_worker 16 --bs 16
+```
+
+
+## 测试
+
+使用我在NVIDIA RTX 2070上训练好的模型，仅仅训练了25个epoch，但已经具备一定的预测效果。         
+测试模型，以示例数据的测试图像为例:    
 ```
 python test.py --img ./data/tusimple_test_image/0.jpg
 ```
-Test img_dir
+
+批量测试文件夹图片
+
 ```
-python test_lanenet.py --src_dir ./test_img
+python test_lanenet.py --model_type ENet --src_dir './data/test_img/03/' --model 'log/log_example/2021-12-03-14-16-21_epochs10_ENet__best_model.pth'
 ```
-The testing result is here:    
-![Input test image](./data/source_image/input.jpg)    
-![Output binary image](./data/source_image/binary_output.jpg)    
-![Output instance image](./data/source_image/instance_output.jpg)    
+
+   
 
 
-## Discussion:  
-The architecture of LaneNet is based on ENet, which is a very light model. That is why I can upload it to github. However, ENet is not the best model to detect lane and do instance segmentation. Now, the model support 2 decoder branch ENet, U-Net, DeepLabv3+ (update 2021.7.16).    
+## 讨论分析:    
+更新日志：    
+2021.7.16更新    
+增加了DeepLabv3+作为LaneNet的Encoder和Decoder,实际效果未测试。    
 
-Focal loss (update 2021.7.20) is also supported.    
+2021.7.22更新    
+增加了Focal Loss。     
 
-## Plan and future work:  
- 
-- [x] E-Net Encoder and E-Net decoder
-- [x] U-Net Encoder and U-Net decoder
-- [x] Discriminative loss for instance segmentation    
-- [x] DeepLabv3+ Encoder and DeepLabv3+ decoder (2021/7/16)
-- [x] Focal loss for binary branch (2021/7/22)
-- [ ] Post Processing (will release 2021/7/26)
-- ~~[ ] Use other new encoder-decoder structure~~
-- ~~[ ] Add H-Net and merge the H-Net model to the main lanenet model~~
+我的工作。
 
-Future work will release soon.   
+待更新
 
-## Reference:  
-The lanenet project refers to the following research and projects:  
-Neven, Davy, et al. "Towards end-to-end lane detection: an instance segmentation approach." 2018 IEEE intelligent vehicles symposium (IV). IEEE, 2018.   
-```
-@inproceedings{neven2018towards,
-  title={Towards end-to-end lane detection: an instance segmentation approach},
-  author={Neven, Davy and De Brabandere, Bert and Georgoulis, Stamatios and Proesmans, Marc and Van Gool, Luc},
-  booktitle={2018 IEEE intelligent vehicles symposium (IV)},
-  pages={286--291},
-  year={2018},
-  organization={IEEE}
-}
-```  
-Paszke, Adam, et al. "Enet: A deep neural network architecture for real-time semantic segmentation." arXiv preprint arXiv:1606.02147 (2016).   
-```
-@article{paszke2016enet,
-  title={Enet: A deep neural network architecture for real-time semantic segmentation},
-  author={Paszke, Adam and Chaurasia, Abhishek and Kim, Sangpil and Culurciello, Eugenio},
-  journal={arXiv preprint arXiv:1606.02147},
-  year={2016}
-}
-```  
-De Brabandere, Bert, Davy Neven, and Luc Van Gool. "Semantic instance segmentation with a discriminative loss function." arXiv preprint arXiv:1708.02551 (2017).   
-```
-@article{de2017semantic,
-  title={Semantic instance segmentation with a discriminative loss function},
-  author={De Brabandere, Bert and Neven, Davy and Van Gool, Luc},
-  journal={arXiv preprint arXiv:1708.02551},
-  year={2017}
-}
-```  
+2021.8.23 项目主体结构完成
 
+三次标注数据汇总训练完成。
 
-https://github.com/MaybeShewill-CV/lanenet-lane-detection    
-https://github.com/klintan/pytorch-lanenet    
+目前项目中ENet表现最好
 
-DeepLabv3+ Encoder and DeepLabv3+ decoder refer from https://github.com/YudeWang/deeplabv3plus-pytorch    
-
-
-
+此项目待完善部分
+- post process ✅
+- 参数优化 参数加载checkpoint 参数加载模型 ✅
+- 车道线目标限界问题
 

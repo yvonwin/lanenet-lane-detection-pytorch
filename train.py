@@ -71,7 +71,7 @@ def train():
                 [
                     transforms.Resize((resize_height, resize_width)),
                     transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1),
-                    # 数据增强. TODO 需要测试
+                    # 数据增强.
                     transforms.RandomVerticalFlip(p=0.5),
                     transforms.RandomHorizontalFlip(p=0.5),
                     transforms.RandomRotation(10),
