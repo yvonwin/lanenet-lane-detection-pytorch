@@ -1,9 +1,9 @@
 '''
 Author: your name
 Date: 2021-08-03 16:30:37
-LastEditTime: 2021-08-26 15:53:32
+LastEditTime: 2021-12-06 15:30:03
 LastEditors: Please set LastEditors
-Description: 评估 test.txt 数据集
+Description: 评估 test.txt指向的测试数据
 FilePath: /lanenet-lane-detection-pytorch/eval.py
 '''
 import time

@@ -60,6 +60,7 @@ path/to/your/unzipped/file应该包含以下文件:
    local_utils/videos2pictures.py
 
 2. labelme人工标注
+   标注数据格式linesrip
 
    主要结构分析
 
@@ -144,4 +145,3 @@ python test_lanenet.py --model_type ENet --src_dir './data/test_img/03/' --model
 - post process ✅
 - 参数优化 参数加载checkpoint 参数加载模型 ✅
 - 车道线目标限界问题
-

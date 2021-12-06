@@ -1,9 +1,9 @@
 '''
 Author: your name
 Date: 2021-08-05 13:52:48
-LastEditTime: 2021-08-17 17:27:57
+LastEditTime: 2021-12-06 15:15:03
 LastEditors: Please set LastEditors
-Description: In User Settings Edit
+Description: 测试后处理程序 未实际使用
 FilePath: /lanenet-lane-detection-pytorch/postprocess.py
 '''
 import numpy as np

@@ -1,3 +1,11 @@
+'''
+Author: tian lei
+Date: 2021-11-24 10:02:41
+LastEditTime: 2021-12-06 15:27:11
+LastEditors: Please set LastEditors
+Description: 后处理 田姐写的 我没有具体看实现
+FilePath: /lanenet-lane-detection-pytorch/local_utils/lanenet_bineary_process.py
+'''
 import cv2
 import numpy as np
 

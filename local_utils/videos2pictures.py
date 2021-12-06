@@ -1,9 +1,9 @@
 '''
 Author: your name
 Date: 2021-07-23 16:45:41
-LastEditTime: 2021-08-16 15:20:40
+LastEditTime: 2021-12-06 15:22:12
 LastEditors: Please set LastEditors
-Description: In User Settings Edit
+Description: 批量视频转数据集原始图片
 FilePath: /lanenet-lane-detection-pytorch/Volumes/Public/CRRC/CRRC_Data/2021-07-28 摄像头数据/车内/晚上/videos2pictures.py
 '''
 import os

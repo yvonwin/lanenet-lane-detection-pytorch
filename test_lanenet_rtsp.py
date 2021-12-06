@@ -1,10 +1,10 @@
 """
 Author: yvon
 Date: 2021-07-19 14:26:06
-LastEditTime: 2021-08-26 17:06:11
+LastEditTime: 2021-12-06 15:35:11
 LastEditors: Please set LastEditors
-Description: 实时拉取rtsp测试
-FilePath: /refact_7.13/pipeline.py
+Description: 当前车道线项目主程序: 读取相机rtsp流，检测车道线，同时socket监听目标检测结果，如果有结果，则在车道线中绘制目标障碍物，维护中。
+FilePath: /lanenet-lane-detection-pytorch/test_lanenet_rtsp.py
 """
 import os
 import cv2
@@ -47,19 +47,16 @@ Todo:
 1. 未检测到rtsp流 增加了报错，但是要全部退出程序，还需要close掉server端 已解决 目前策略，一开始没检测到rtsp流，就直接退出。 done. 11.23在工控机下测试发现bug.在虚拟机中开机rtsp流，但是还是get到异常，暂时改回去了。
 2. 后续可能相机突然断流，也需要异常关闭. 这个比较容易实现 看需要的时候再实现
 3. 异常关闭后自启. 非此程序内部逻辑，需要脚本检查控制： 目前初步思路是查看端口占用，如果端口占用，什么都不做，如果没占用，重启程序。
-4. opencv需要3.4.0版本，安装4.0版本会报错，后处理阶段有个函数接口有变化。
+4. opencv需要3.4.0版本，安装4.0版本会报错，后处理阶段有个函数接口有变化。findContours这个函数接口有变化，如果升级到opencv4需要更新。
 
 功能完善：
 1. 功能聚合。车道与障碍物检测融合.
 2. 稳定性测试 
-
-
 """
 
 FPS = 25
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 HOST, PORT = "127.0.0.1", 8000
-
 
 status = 0
 num_boxes = 0

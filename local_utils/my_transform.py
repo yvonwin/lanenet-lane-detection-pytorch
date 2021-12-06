@@ -1,9 +1,9 @@
 """
-Author: your name
+Author: yvon
 Date: 2021-08-03 14:14:42
 LastEditTime: 2021-08-26 15:21:43
 LastEditors: Please set LastEditors
-Description: 生成tusimple格式的标注文件
+Description: 生成tusimple格式的标注文件,为当前项目使用的版本
 FilePath: /labelme处理/convert1.py
 """
 

@@ -1,7 +1,7 @@
 '''
-Author: your name
+Author: yvon
 Date: 2021-08-02 18:14:51
-LastEditTime: 2021-08-26 15:20:01
+LastEditTime: 2021-12-06 15:19:19
 LastEditors: Please set LastEditors
 Description: 批量处理labelme_json文件
 FilePath: /labelme处理/pipeline.py

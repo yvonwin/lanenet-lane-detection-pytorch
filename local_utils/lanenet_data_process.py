@@ -1,3 +1,11 @@
+'''
+Author: tianlei
+Date: 2021-11-24 10:02:15
+LastEditTime: 2021-12-06 15:28:52
+LastEditors: Please set LastEditors
+Description: 车道线拟合和边界计算。
+FilePath: /lanenet-lane-detection-pytorch/local_utils/lanenet_data_process.py
+'''
 import cv2
 import numpy as np
 

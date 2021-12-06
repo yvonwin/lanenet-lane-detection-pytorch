@@ -1,3 +1,11 @@
+'''
+Author: yvon
+Date: 2021-11-24 10:02:31
+LastEditTime: 2021-12-06 15:44:47
+LastEditors: Please set LastEditors
+Description: 使用Lannet测试单张图片，不再更新
+FilePath: /lanenet-lane-detection-pytorch/test.py
+'''
 # import time
 import os
 

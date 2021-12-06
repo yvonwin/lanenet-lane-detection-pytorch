@@ -1,9 +1,9 @@
 """
 Author: yvon
 Date: 2021-08-05 17:41:49
-LastEditTime: 2021-08-26 19:31:10
+LastEditTime: 2021-12-06 15:31:10
 LastEditors: Please set LastEditors
-Description: 批量测试文件夹中的图片
+Description: 批量测试文件夹中的图片 12.6号验证无误，后续应该不会再更新。
 FilePath: /lanenet-lane-detection-pytorch/test_lanenet.py
 """
 # import argparse

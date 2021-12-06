@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""
+"""原始代码转换tusimple（未使用）
 generate tusimple training dataset
 
 Original code is copied from https://github.com/MaybeShewill-CV/lanenet-lane-detection

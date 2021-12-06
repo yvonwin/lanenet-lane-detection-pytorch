@@ -1,5 +1,12 @@
+'''
+Author: your name
+Date: 2021-11-23 18:03:03
+LastEditTime: 2021-12-06 15:19:46
+LastEditors: your name
+Description: 文件批量重命名
+FilePath: /lanenet-lane-detection-pytorch/local_utils/rename.py
+'''
 import os
-
 path_name='./images'
 #path_name :表示你需要批量改的文件夹
 i=0
