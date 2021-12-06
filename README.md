@@ -120,7 +120,21 @@ python test.py --img ./data/tusimple_test_image/0.jpg
 python test_lanenet.py --model_type ENet --src_dir './data/test_img/03/' --model 'log/log_example/2021-12-03-14-16-21_epochs10_ENet__best_model.pth'
 ```
 
-   
+测试rtsp流
+
+```
+python test_lanenet_rtsp.py --model ../lanenet-pytorch_models/2021-08-18-14-10-53_epochs300_ENet_resnet101_best_model.pth  --model_type ENet --rtsp_url rtsp://admin:Zhaodao1234!@192.168.31.63:554//Streaming/Channels/2
+```
+如果手上没有相机，需要模拟rtsp流，可以使用rtsp-simple-server和ffmpeg来完成。
+```
+./rtsp-simple-server
+```
+车道线视频为test.mp4
+```
+ffmpeg -re -r 25 -i test.mp4 -codec copy -an -f rtsp -muxdelay 0  -rtsp_transport tcp rtsp://localhost:8554/
+```
+修改rtsp流为自定义的rtsp://localhost:8554/即可
+
 
 
 ## 讨论分析:    
